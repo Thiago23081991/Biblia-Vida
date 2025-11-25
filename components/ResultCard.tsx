@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
 import { AudienceType } from '../types';
 import { Share2, Copy, Check } from 'lucide-react';
 
@@ -23,30 +22,62 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience }) => {
         return {
           container: "bg-yellow-50 border-yellow-200 font-hand text-lg text-slate-800",
           heading: "text-yellow-700",
-          icon: "text-yellow-600"
+          strong: "text-yellow-900",
         };
       case AudienceType.TEEN:
         return {
           container: "bg-purple-50 border-purple-200 font-sans text-base text-slate-800",
           heading: "text-purple-700 font-bold tracking-tight",
-          icon: "text-purple-600"
+          strong: "text-purple-900",
         };
       case AudienceType.ADULT:
         return {
           container: "bg-white border-slate-200 shadow-sm font-serif text-base text-slate-800 leading-relaxed",
-          heading: "text-blue-900 font-semibold border-b border-blue-100 pb-1 mb-2",
-          icon: "text-blue-800"
+          heading: "text-blue-900 font-semibold border-b border-blue-100 pb-1 mb-2 mt-4",
+          strong: "text-slate-900",
         };
       default:
         return {
           container: "bg-white",
-          heading: "",
-          icon: ""
+          heading: "font-bold mt-4",
+          strong: "font-bold",
         };
     }
   };
 
   const styles = getStyles();
+
+  // Simple parser to handle Markdown-like syntax from Gemini without heavy dependencies
+  // Handles: **bold**, ## Headers, and newlines
+  const renderContent = (text: string) => {
+    if (!text) return null;
+
+    return text.split('\n').map((line, index) => {
+      // Handle empty lines as spacers
+      if (!line.trim()) {
+        return <div key={index} className="h-2"></div>;
+      }
+
+      // Handle Headers (##)
+      if (line.startsWith('## ') || line.startsWith('**📖') || line.startsWith('**🎯') || line.startsWith('**💬') || line.startsWith('**💡')) {
+        const cleanLine = line.replace(/##\s?|\*\*/g, '');
+        return <h3 key={index} className={`text-lg ${styles.heading}`}>{cleanLine}</h3>;
+      }
+
+      // Handle regular paragraphs with **bold** parsing
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      return (
+        <p key={index} className="mb-2">
+          {parts.map((part, partIndex) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              return <strong key={partIndex} className={`font-bold ${styles.strong}`}>{part.slice(2, -2)}</strong>;
+            }
+            return part;
+          })}
+        </p>
+      );
+    });
+  };
 
   return (
     <div className={`w-full rounded-2xl border p-6 md:p-8 mt-6 relative animate-fade-in ${styles.container}`}>
@@ -61,17 +92,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience }) => {
         </button>
       </div>
 
-      <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:mb-2 prose-p:my-2 prose-strong:text-current">
-        <ReactMarkdown
-          components={{
-            h1: ({node, ...props}) => <h1 className={`text-xl mb-4 ${styles.heading}`} {...props} />,
-            h2: ({node, ...props}) => <h2 className={`text-lg mt-4 mb-2 ${styles.heading}`} {...props} />,
-            strong: ({node, ...props}) => <strong className="font-extrabold opacity-90" {...props} />,
-            p: ({node, ...props}) => <p className="mb-4" {...props} />
-          }}
-        >
-          {content}
-        </ReactMarkdown>
+      <div className="prose prose-slate max-w-none">
+        {renderContent(content)}
       </div>
     </div>
   );
