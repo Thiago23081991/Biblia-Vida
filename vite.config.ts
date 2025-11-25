@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   // Carrega variáveis de ambiente baseadas no modo atual
   // No GitHub Pages ou Vercel, defina VITE_API_KEY nas configurações do projeto
-  const env = loadEnv(mode, (process as any).cwd(), '');
+  const env = loadEnv(mode, '.', '');
 
   return {
     plugins: [react()],

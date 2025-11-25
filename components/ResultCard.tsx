@@ -1,6 +1,6 @@
 import React from 'react';
 import { AudienceType } from '../types';
-import { Share2, Copy, Check } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 
 interface ResultCardProps {
   content: string;
