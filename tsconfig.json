@@ -18,7 +18,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Types for Vite and Node */
+    "types": ["node", "vite/client"]
   },
   "include": ["."],
   "exclude": ["node_modules", "dist"]
