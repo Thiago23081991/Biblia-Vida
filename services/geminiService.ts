@@ -102,7 +102,7 @@ export const generateExplanation = async (input: string, audience: AudienceType)
     return response.text || "Não foi possível gerar a explicação. Tente novamente.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    throw new Error("Erro ao conectar com o serviço de IA.");
+    return "Erro ao conectar com o serviço de IA. Verifique se a Chave de API está configurada corretamente.";
   }
 };
 
@@ -122,7 +122,7 @@ export const getBibleText = async (reference: string): Promise<string> => {
     return response.text || "Não foi possível carregar o texto bíblico.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    throw new Error("Erro ao conectar com o serviço de IA.");
+    return "Erro ao conectar com o serviço de IA. Verifique sua conexão.";
   }
 };
 
@@ -142,6 +142,6 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
     return response.text || "Nenhum versículo encontrado para este termo.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    throw new Error("Erro ao realizar a busca.");
+    return "Erro ao realizar a busca.";
   }
 };

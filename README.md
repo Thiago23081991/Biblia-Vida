@@ -1,20 +1,33 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Bíblia Viva & Adaptada
 
-# Run and deploy your AI Studio app
+Aplicação web desenvolvida com React, Vite e Google Gemini AI para adaptar passagens bíblicas para diferentes públicos.
 
-This contains everything you need to run your app locally.
+## Configuração Local
 
-View your app in AI Studio: https://ai.studio/apps/drive/1FoOQYWFYgicQYsYYCAypc7hCyrj9ozfZ
+1. Instale as dependências:
+   ```bash
+   npm install
+   ```
 
-## Run Locally
+2. Crie um arquivo `.env` na raiz do projeto e adicione sua chave:
+   ```env
+   VITE_API_KEY=Sua_Chave_Gemini_Aqui
+   ```
+   *Nota: A chave deve começar com `VITE_` para funcionar.*
 
-**Prerequisites:**  Node.js
+3. Rode o projeto:
+   ```bash
+   npm run dev
+   ```
 
+## Deploy no Vercel (Importante)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Ao fazer o deploy no Vercel, você **deve** configurar a variável de ambiente corretamente:
+
+1. Vá em **Settings** > **Environment Variables**.
+2. Adicione a variável:
+   - **Name:** `VITE_API_KEY`
+   - **Value:** `(Sua chave API do Google AI Studio)`
+3. Faça um novo deploy.
+
+Se você usar o nome `API_KEY` (sem VITE_), o aplicativo **não funcionará**, pois o Vite não expõe variáveis de ambiente padrão para o navegador por segurança.
