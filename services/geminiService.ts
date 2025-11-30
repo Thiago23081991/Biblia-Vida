@@ -72,10 +72,15 @@ FORMATO DE SAÍDA:
 ... (Listar outros)
 `;
 
+// Helper para obter a chave seguindo as diretrizes do SDK (process.env.API_KEY)
+const getClient = (): GoogleGenAI => {
+  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+};
+
 export const generateExplanation = async (input: string, audience: AudienceType): Promise<string> => {
+  const ai = getClient();
+
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    
     // Map internal enum to prompt specific string
     let audiencePrompt = "";
     switch (audience) {
@@ -99,17 +104,17 @@ export const generateExplanation = async (input: string, audience: AudienceType)
       contents: `Tema ou Passagem: "${input}". Público Alvo: ${audiencePrompt}`,
     });
 
-    return response.text || "Não foi possível gerar a explicação. Tente novamente.";
+    return response.text || "O sistema recebeu sua solicitação, mas não conseguiu gerar uma resposta textual. Tente reformular o pedido.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Erro ao conectar com o serviço de IA. Verifique se a Chave de API está configurada corretamente.";
+    return "😔 Desculpe, ocorreu um erro ao se comunicar com a Inteligência Artificial. Pode ser uma instabilidade temporária no serviço ou um bloqueio de segurança. Tente novamente em alguns instantes.";
   }
 };
 
 export const getBibleText = async (reference: string): Promise<string> => {
+  const ai = getClient();
+
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       config: {
@@ -119,17 +124,17 @@ export const getBibleText = async (reference: string): Promise<string> => {
       contents: `Forneça o texto bíblico para: "${reference}"`,
     });
 
-    return response.text || "Não foi possível carregar o texto bíblico.";
+    return response.text || "Não foi possível carregar o texto bíblico. Tente verificar a referência.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Erro ao conectar com o serviço de IA. Verifique sua conexão.";
+    return "❌ Erro ao buscar o texto bíblico. Verifique sua conexão com a internet e tente novamente.";
   }
 };
 
 export const searchBibleVerses = async (keyword: string): Promise<string> => {
+  const ai = getClient();
+
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       config: {
@@ -139,9 +144,9 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
       contents: `Encontre versículos com a palavra/tema: "${keyword}"`,
     });
 
-    return response.text || "Nenhum versículo encontrado para este termo.";
+    return response.text || "Nenhum versículo encontrado para este termo. Tente uma palavra diferente.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Erro ao realizar a busca.";
+    return "🔍 Erro na busca. O serviço está temporariamente indisponível.";
   }
 };
