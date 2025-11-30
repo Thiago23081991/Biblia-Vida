@@ -72,15 +72,45 @@ FORMATO DE SAÍDA:
 ... (Listar outros)
 `;
 
-// Helper para obter a chave seguindo as diretrizes do SDK (process.env.API_KEY)
+// Helper para obter a chave e validar
 const getClient = (): GoogleGenAI => {
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // O vite.config.ts substitui process.env.API_KEY por import.meta.env.VITE_API_KEY no build
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey || apiKey.includes('Sua_Chave')) {
+    throw new Error("MISSING_KEY");
+  }
+  return new GoogleGenAI({ apiKey });
+};
+
+const handleGeminiError = (error: any): string => {
+  console.error("Gemini API Error:", error);
+  
+  if (error.message === "MISSING_KEY") {
+    return "⚠️ Chave de API não configurada. Por favor, configure a variável VITE_API_KEY no Vercel ou no arquivo .env localmente.";
+  }
+
+  const errorMessage = error.toString().toLowerCase();
+
+  if (errorMessage.includes("429") || errorMessage.includes("quota")) {
+    return "⏳ O limite de uso gratuito da IA foi atingido temporariamente. Por favor, aguarde alguns minutos e tente novamente.";
+  }
+  
+  if (errorMessage.includes("503") || errorMessage.includes("overloaded")) {
+    return "📡 O serviço de IA está com alta demanda no momento. Tente novamente em breve.";
+  }
+
+  if (errorMessage.includes("safety") || errorMessage.includes("blocked")) {
+    return "🛡️ A resposta foi bloqueada pelos filtros de segurança. Tente reformular sua pergunta ou escolher um tema diferente.";
+  }
+
+  return "😔 Desculpe, ocorreu um erro inesperado ao conectar com a Inteligência Artificial. Verifique sua conexão e tente novamente.";
 };
 
 export const generateExplanation = async (input: string, audience: AudienceType): Promise<string> => {
-  const ai = getClient();
-
   try {
+    const ai = getClient();
+
     // Map internal enum to prompt specific string
     let audiencePrompt = "";
     switch (audience) {
@@ -106,15 +136,14 @@ export const generateExplanation = async (input: string, audience: AudienceType)
 
     return response.text || "O sistema recebeu sua solicitação, mas não conseguiu gerar uma resposta textual. Tente reformular o pedido.";
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "😔 Desculpe, ocorreu um erro ao se comunicar com a Inteligência Artificial. Pode ser uma instabilidade temporária no serviço ou um bloqueio de segurança. Tente novamente em alguns instantes.";
+    return handleGeminiError(error);
   }
 };
 
 export const getBibleText = async (reference: string): Promise<string> => {
-  const ai = getClient();
-
   try {
+    const ai = getClient();
+
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       config: {
@@ -126,15 +155,14 @@ export const getBibleText = async (reference: string): Promise<string> => {
 
     return response.text || "Não foi possível carregar o texto bíblico. Tente verificar a referência.";
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "❌ Erro ao buscar o texto bíblico. Verifique sua conexão com a internet e tente novamente.";
+    return handleGeminiError(error);
   }
 };
 
 export const searchBibleVerses = async (keyword: string): Promise<string> => {
-  const ai = getClient();
-
   try {
+    const ai = getClient();
+
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       config: {
@@ -146,7 +174,6 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
 
     return response.text || "Nenhum versículo encontrado para este termo. Tente uma palavra diferente.";
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "🔍 Erro na busca. O serviço está temporariamente indisponível.";
+    return handleGeminiError(error);
   }
 };

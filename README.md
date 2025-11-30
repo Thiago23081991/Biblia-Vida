@@ -2,42 +2,33 @@
 
 Aplicação web desenvolvida com React, Vite e Google Gemini AI para adaptar passagens bíblicas para diferentes públicos.
 
-## 🚀 Configuração Local
+## 🚀 Como Configurar (Essencial)
 
-1. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
+Esta aplicação requer uma **API Key** do Google Gemini para funcionar.
 
-2. **Configure a Chave de API:**
-   Crie um arquivo chamado `.env` na raiz do projeto (ao lado do `package.json`) e adicione sua chave. É fundamental usar o prefixo `VITE_`.
-   
-   Conteúdo do arquivo `.env`:
+### 1. Obter a Chave
+1. Acesse [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Crie uma nova chave de API.
+
+### 2. Rodando no seu PC (Local)
+1. Crie um arquivo `.env` na raiz do projeto.
+2. Adicione a chave com o prefixo `VITE_`:
    ```env
-   VITE_API_KEY=Sua_Chave_Começada_Com_AIza_Aqui
+   VITE_API_KEY=Cole_Sua_Chave_Aqui
    ```
+3. Rode `npm install` e depois `npm run dev`.
 
-3. **Inicie o servidor de desenvolvimento:**
-   ```bash
-   npm run dev
-   ```
+### 3. Deploy na Vercel (Online)
+Para o site funcionar na internet, você **DEVE** configurar a variável no painel da Vercel:
 
-## 🌐 Deploy no Vercel (Obrigatório)
-
-Para que o aplicativo funcione online, você precisa configurar a chave de API no painel da Vercel. O Vite só consegue ler variáveis que começam com `VITE_`.
-
-1. Importe seu projeto do GitHub para o Vercel.
-2. Vá em **Settings** (Configurações) > **Environment Variables** (Variáveis de Ambiente).
-3. Adicione a variável:
-   - **Key (Nome):** `VITE_API_KEY`
-   - **Value (Valor):** `Sua chave da Google AI Studio`
-4. Se o deploy já tinha falhado, vá em **Deployments**, clique no último deploy e selecione **Redeploy**.
-
-⚠️ **Nota:** Se você usar apenas `API_KEY` ou `GOOGLE_API_KEY` sem o prefixo `VITE_`, o aplicativo **não funcionará**, pois o navegador não terá acesso à chave.
+1. Vá em **Settings** > **Environment Variables**.
+2. Adicione:
+   - **Key:** `VITE_API_KEY`  ⚠️ (Obrigatório ter o VITE_)
+   - **Value:** `Sua_Chave_Aqui`
+3. Faça um novo deploy.
 
 ## 🛠 Tecnologias
 
 - **React 19** & **Vite**: Performance e modernidade.
 - **Google GenAI SDK**: Inteligência Artificial via Gemini 2.5 Flash.
 - **Tailwind CSS**: Estilização rápida e responsiva.
-- **Lucide React**: Ícones leves.
