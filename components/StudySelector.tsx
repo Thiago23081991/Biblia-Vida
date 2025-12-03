@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { studyThemes, StudyCategory } from '../data/studyThemes';
+import { studyThemes } from '../data/studyThemes';
 import { ChevronRight } from 'lucide-react';
 
 interface StudySelectorProps {
