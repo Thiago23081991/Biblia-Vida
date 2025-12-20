@@ -1,17 +1,17 @@
 
 import React, { useState } from 'react';
-import { AudienceType, HistoryItem } from './types';
+import { AudienceType, HistoryItem, InputMode } from './types';
 import { generateExplanation, getBibleText, searchBibleVerses } from './services/geminiService';
 import AudienceSelector from './components/AudienceSelector';
 import ResultCard from './components/ResultCard';
 import BibleSelector from './components/BibleSelector';
 import StudySelector from './components/StudySelector';
-import { Book, Sparkles, Send, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap } from 'lucide-react';
-
-type InputMode = 'free' | 'bible' | 'search' | 'study';
+import ReadingPlanView from './components/ReadingPlanView';
+import ThematicPlansView from './components/ThematicPlansView';
+import { Book, Sparkles, Send, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [inputMode, setInputMode] = useState<InputMode>('free');
+  const [inputMode, setInputMode] = useState<InputMode>('plan');
   
   // Inputs for different modes
   const [inputText, setInputText] = useState(''); // Free Text
@@ -32,13 +32,14 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
-  const handleGenerate = async () => {
-    // Determine input based on mode
-    let inputToUse = '';
-    if (inputMode === 'free') inputToUse = inputText;
-    else if (inputMode === 'bible') inputToUse = pickerText;
-    else if (inputMode === 'study') inputToUse = studyTopic;
-    else return; 
+  const handleGenerate = async (forcedInput?: string) => {
+    let inputToUse = forcedInput || '';
+    
+    if (!forcedInput) {
+      if (inputMode === 'free') inputToUse = inputText;
+      else if (inputMode === 'bible') inputToUse = pickerText;
+      else if (inputMode === 'study') inputToUse = studyTopic;
+    }
 
     if (!inputToUse.trim()) return;
 
@@ -51,15 +52,15 @@ const App: React.FC = () => {
       setResult(generatedText);
       addToHistory(inputToUse, selectedAudience, generatedText);
       
-      // Clear inputs for new query
-      if (inputMode === 'free') {
-        setInputText('');
-      } else if (inputMode === 'bible') {
-        setBibleSelectorKey(prev => prev + 1); // Resets selector visual state
-      } else if (inputMode === 'study') {
-        // Optional: clear study selection or leave it
-        setStudyTopic('');
-      }
+      if (inputMode === 'free' && !forcedInput) setInputText('');
+      if (inputMode === 'bible' && !forcedInput) setBibleSelectorKey(prev => prev + 1);
+      if (inputMode === 'study' && !forcedInput) setStudyTopic('');
+      
+      // Scroll to result
+      setTimeout(() => {
+        document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      
     } catch (error) {
       console.error(error);
       setResult("Ocorreu um erro ao gerar a explicação. Verifique sua conexão ou tente novamente mais tarde.");
@@ -68,9 +69,8 @@ const App: React.FC = () => {
     }
   };
 
-  const handleReadBible = async () => {
-    // Only valid for Bible Navigation mode generally, or free text if user typed a reference
-    let inputToUse = inputMode === 'bible' ? pickerText : inputText;
+  const handleReadBible = async (forcedInput?: string) => {
+    let inputToUse = forcedInput || (inputMode === 'bible' ? pickerText : inputText);
     
     if (!inputToUse.trim()) return;
 
@@ -81,7 +81,10 @@ const App: React.FC = () => {
     try {
       const bibleText = await getBibleText(inputToUse);
       setResult(bibleText);
-      // Note: We do NOT clear inputs on Read Bible to allow navigation (next/prev) to continue from current state
+      
+      setTimeout(() => {
+        document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     } catch (error) {
       console.error(error);
       setResult("Ocorreu um erro ao buscar o texto bíblico.");
@@ -95,17 +98,25 @@ const App: React.FC = () => {
 
     setLoading(true);
     setResult(null);
-    setIsReadingMode(true); // Treat search results as 'reading' content (simple formatting)
+    setIsReadingMode(true);
 
     try {
       const searchResults = await searchBibleVerses(searchText);
       setResult(searchResults);
-      setSearchText(''); // Clear search input
+      setSearchText('');
     } catch (error) {
       console.error(error);
       setResult("Ocorreu um erro ao realizar a busca.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePlanAction = (ref: string, mode: 'read' | 'explain') => {
+    if (mode === 'read') {
+      handleReadBible(ref);
+    } else {
+      handleGenerate(ref);
     }
   };
 
@@ -150,6 +161,10 @@ const App: React.FC = () => {
         return <BibleSelector key={bibleSelectorKey} onSelectionChange={setPickerText} />;
       case 'study':
         return <StudySelector onSelectTopic={setStudyTopic} />;
+      case 'plan':
+        return <ReadingPlanView onSelectReference={handlePlanAction} isLoading={loading} />;
+      case 'thematic':
+        return <ThematicPlansView onSelectAction={handlePlanAction} isLoading={loading} />;
       case 'search':
         return (
           <div className="relative animate-fade-in py-4">
@@ -204,155 +219,131 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="w-full max-w-4xl mx-auto px-4 py-8 flex-grow">
         
-        {/* Input Section */}
-        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8">
-          
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-            <label className="block text-sm font-semibold text-slate-700">
-              O que você quer explorar hoje?
-            </label>
-            
-            {/* Tabs */}
-            <div className="flex p-1 bg-slate-100 rounded-lg self-start md:self-auto overflow-x-auto max-w-full">
-              <button
-                onClick={() => setInputMode('free')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                  inputMode === 'free' 
-                    ? 'bg-white text-brand-700 shadow-sm' 
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Type size={16} />
-                Livre
-              </button>
-              <button
-                onClick={() => setInputMode('bible')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                  inputMode === 'bible' 
-                    ? 'bg-white text-brand-700 shadow-sm' 
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <BookOpen size={16} />
-                Navegar
-              </button>
-              <button
-                onClick={() => setInputMode('study')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                  inputMode === 'study' 
-                    ? 'bg-white text-brand-700 shadow-sm' 
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <GraduationCap size={16} />
-                Estudos
-              </button>
-              <button
-                onClick={() => setInputMode('search')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                  inputMode === 'search' 
-                    ? 'bg-white text-brand-700 shadow-sm' 
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Search size={16} />
-                Busca
-              </button>
-            </div>
-          </div>
+        {/* Navigation Tabs */}
+        <div className="flex p-1 bg-slate-200/50 rounded-xl mb-6 overflow-x-auto no-scrollbar">
+          <button
+            onClick={() => setInputMode('plan')}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-1 ${
+              inputMode === 'plan' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+            }`}
+          >
+            <CalendarDays size={18} />
+            Anual
+          </button>
+          <button
+            onClick={() => setInputMode('thematic')}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-1 ${
+              inputMode === 'thematic' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+            }`}
+          >
+            <Library size={18} />
+            Planos Temáticos
+          </button>
+          <button
+            onClick={() => setInputMode('free')}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-1 ${
+              inputMode === 'free' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+            }`}
+          >
+            <Type size={18} />
+            Explorar
+          </button>
+          <button
+            onClick={() => setInputMode('bible')}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-1 ${
+              inputMode === 'bible' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+            }`}
+          >
+            <BookOpen size={18} />
+            Bíblia
+          </button>
+          <button
+            onClick={() => setInputMode('study')}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-1 ${
+              inputMode === 'study' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+            }`}
+          >
+            <GraduationCap size={18} />
+            Estudos
+          </button>
+          <button
+            onClick={() => setInputMode('search')}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-1 ${
+              inputMode === 'search' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+            }`}
+          >
+            <Search size={18} />
+            Busca
+          </button>
+        </div>
 
-          <div className="min-h-[120px]">
+        {/* Input Section */}
+        <section className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-8 ${['plan', 'thematic'].includes(inputMode) ? 'bg-transparent border-none shadow-none p-0' : ''}`}>
+          
+          {!['plan', 'thematic'].includes(inputMode) && (
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+              <label className="block text-sm font-semibold text-slate-700">
+                {inputMode === 'free' && "O que você quer explorar hoje?"}
+                {inputMode === 'bible' && "Escolha uma passagem para ler ou explicar"}
+                {inputMode === 'study' && "Selecione um tema de estudo guiado"}
+                {inputMode === 'search' && "Busque versículos específicos"}
+              </label>
+            </div>
+          )}
+
+          <div className={['plan', 'thematic'].includes(inputMode) ? '' : 'min-h-[120px]'}>
             {renderInputSection()}
           </div>
 
-          {/* Action Buttons Area */}
-          <div className="mt-8 flex flex-col md:flex-row items-center gap-6 justify-between border-t border-slate-100 pt-6">
-            
-            {/* Audience Selector - Only visible for 'free', 'bible' or 'study' mode when not just searching */}
-            <div className={`w-full md:w-auto transition-opacity ${inputMode === 'search' ? 'opacity-30 pointer-events-none grayscale' : 'opacity-100'}`}>
-               <p className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Público para Explicação</p>
-               <AudienceSelector selected={selectedAudience} onChange={setSelectedAudience} />
-            </div>
+          {/* Action Buttons Area (Hidden for Plan and Search) */}
+          {!['plan', 'thematic', 'search'].includes(inputMode) && (
+            <div className="mt-8 flex flex-col md:flex-row items-center gap-6 justify-between border-t border-slate-100 pt-6">
+              <div className="w-full md:w-auto">
+                 <p className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Público para Explicação</p>
+                 <AudienceSelector selected={selectedAudience} onChange={setSelectedAudience} />
+              </div>
 
-            {/* Buttons Logic */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              
-              {inputMode === 'search' ? (
-                // Search Mode Button
+              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                 <button
-                  onClick={handleSearch}
-                  disabled={loading || !searchText.trim()}
-                  className={`
-                    w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-white transition-all transform active:scale-95 shadow-md
-                    ${loading || !searchText.trim() 
-                      ? 'bg-slate-300 cursor-not-allowed' 
-                      : 'bg-brand-600 hover:bg-brand-700 hover:shadow-lg hover:-translate-y-1'
-                    }
-                  `}
+                  onClick={() => handleReadBible()}
+                  disabled={loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)}
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-700 bg-white border-2 border-slate-200 hover:border-brand-300 hover:bg-slate-50 transition-all disabled:opacity-50"
                 >
-                  {loading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Buscando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Search size={18} />
-                      <span>Buscar na Bíblia</span>
-                    </>
-                  )}
+                  <BookOpen size={18} />
+                  <span>Ler Bíblia</span>
                 </button>
-              ) : (
-                // Free/Bible/Study Mode Buttons
-                <>
-                  <button
-                    onClick={handleReadBible}
-                    disabled={loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)}
-                    className={`
-                      flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-700 bg-white border-2 border-slate-200 transition-all transform active:scale-95
-                      ${loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)
-                        ? 'opacity-50 cursor-not-allowed' 
-                        : 'hover:border-brand-300 hover:bg-slate-50 hover:text-brand-700'
-                      }
-                    `}
-                  >
-                    <BookOpen size={18} />
-                    <span>Ler Bíblia</span>
-                  </button>
 
-                  <button
-                    onClick={handleGenerate}
-                    disabled={loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)}
-                    className={`
-                      flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-white transition-all transform active:scale-95 shadow-md
-                      ${loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)
-                        ? 'bg-slate-300 cursor-not-allowed' 
-                        : 'bg-brand-600 hover:bg-brand-700 hover:shadow-lg hover:-translate-y-1'
-                      }
-                    `}
-                  >
-                    {loading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span>Processando...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send size={18} />
-                        <span>Explicar</span>
-                      </>
-                    )}
-                  </button>
-                </>
-              )}
+                <button
+                  onClick={() => handleGenerate()}
+                  disabled={loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)}
+                  className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-white bg-brand-600 hover:bg-brand-700 hover:shadow-lg transition-all disabled:bg-slate-300"
+                >
+                  {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Send size={18} />}
+                  <span>{loading ? "Processando..." : "Explicar"}</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Search Button Special Case */}
+          {inputMode === 'search' && (
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleSearch}
+                disabled={loading || !searchText.trim()}
+                className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-white bg-brand-600 hover:bg-brand-700 transition-all disabled:bg-slate-300"
+              >
+                {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Search size={18} />}
+                <span>{loading ? "Buscando..." : "Buscar na Bíblia"}</span>
+              </button>
+            </div>
+          )}
 
         </section>
 
         {/* Output Section */}
         {result && (
-          <div id="result-section">
+          <div id="result-section" className="scroll-mt-24">
             <ResultCard 
               content={result} 
               audience={isReadingMode ? AudienceType.ADULT : selectedAudience} 
@@ -360,26 +351,22 @@ const App: React.FC = () => {
           </div>
         )}
         
-        {!result && !loading && (
+        {!result && !loading && !['plan', 'thematic'].includes(inputMode) && (
           <div className="text-center py-12 text-slate-400">
             <div className="inline-block p-4 rounded-full bg-slate-100 mb-4">
               <Sparkles size={32} className="opacity-50" />
             </div>
-            <p className="text-lg">
-              {inputMode === 'free' && "Digite um tema ou versículo."}
-              {inputMode === 'bible' && "Selecione a passagem para ler ou explicar."}
-              {inputMode === 'study' && "Escolha um tema de estudo para começar."}
-              {inputMode === 'search' && "Digite uma palavra para encontrar versículos."}
-            </p>
+            <p className="text-lg">Comece sua jornada bíblica selecionando uma opção acima.</p>
           </div>
         )}
 
       </main>
 
       {/* Footer */}
-      <footer className="w-full py-6 text-center text-slate-400 text-sm border-t border-slate-200 bg-white">
-        <p>Baseado na Nova Versão Internacional (NVI)</p>
-        <p className="mt-1 opacity-70">Desenvolvido com IA Generativa</p>
+      <footer className="w-full py-8 text-center text-slate-400 text-sm border-t border-slate-200 bg-white mt-12">
+        <p className="font-semibold text-slate-600">Bíblia Viva & Adaptada</p>
+        <p className="mt-1">Fidelidade teológica baseada na Nova Versão Internacional (NVI)</p>
+        <p className="mt-4 opacity-70">© 2024 - Desenvolvido para Edificação Cristã</p>
       </footer>
 
       {/* History Sidebar */}

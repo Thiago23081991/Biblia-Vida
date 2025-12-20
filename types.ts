@@ -1,7 +1,15 @@
+
 export enum AudienceType {
   CHILD = 'CHILD',
   TEEN = 'TEEN',
   ADULT = 'ADULT'
+}
+
+export enum ReadingPlanType {
+  CANONICAL = 'CANONICAL',
+  COMBINED = 'COMBINED',
+  CHRONOLOGICAL = 'CHRONOLOGICAL',
+  REDEMPTIVE = 'REDEMPTIVE'
 }
 
 export interface GenerationRequest {
@@ -20,3 +28,5 @@ export interface HistoryItem {
   response: string;
   timestamp: number;
 }
+
+export type InputMode = 'free' | 'bible' | 'search' | 'study' | 'plan' | 'thematic';

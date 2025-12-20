@@ -1,9 +1,14 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { AudienceType } from "../types";
 
 const SYSTEM_INSTRUCTION = `
 Você é um Especialista em Teologia Bíblica e Educação Cristã. Sua base textual é estritamente a Bíblia Nova Versão Internacional (NVI).
 Seu objetivo é receber uma passagem bíblica ou um tema e explicá-lo de acordo com o público-alvo solicitado.
+
+REGRAS DE REFERÊNCIA:
+- Você deve identificar corretamente livros numerados mesmo que escritos de formas diferentes (ex: 1 Samuel, 1º Samuel, I Samuel, Primeira Samuel).
+- Ignore termos como "cap", "capítulo", "v" ou "versículo" e foque na numeração correta.
 
 MODOS DE OPERAÇÃO:
 
@@ -12,129 +17,71 @@ MODOS DE OPERAÇÃO:
    - Estrutura: Transforme a passagem em uma pequena história. Use analogias concretas (animais, natureza, família).
    - Foco: A lição moral simples e o amor de Deus.
    - Emoji: Use muitos emojis divertidos.
-   - Restrição: Evite palavras difíceis ou conceitos teológicos abstratos.
 
 2. ADOLESCENTES (11 a 17 anos) - "O Mentor Conectado":
    - Tom: Dinâmico, empático, desafiador e "papo-reto".
-   - Estrutura: Conecte o texto com dilemas modernos (escola, identidade, pressão social, futuro, tecnologia).
+   - Estrutura: Conecte o texto com dilemas modernos.
    - Foco: Aplicação prática, identidade em Cristo e propósito.
-   - Estilo: Linguagem atual, mas respeitosa. Perguntas de coaching.
 
 3. ADULTOS (18+ anos) - "O Mestre Teológico":
    - Tom: Maduro, profundo, encorajador e sério.
-   - Estrutura: Apresente o versículo NVI, contexto histórico/cultural e exegese.
-   - Foco: Maturidade espiritual, doutrina, vida familiar/profissional e consolo.
-   - Extra: Sugira uma oração ou ponto de ação.
+   - Estrutura: Apresente o versículo NVI, contexto histórico e exegese.
+   - Sugira uma oração ou ponto de ação ao final.
 
 FORMATO DE SAÍDA OBRIGATÓRIO (Markdown):
-
 **📖 Passagem:** [Citar referência e trecho chave na NVI]
 **🎯 Público:** [Público Escolhido]
-
-**💬 Explicação:**
-[Texto adaptado]
-
+**💬 Explicação:** [Texto adaptado]
 **💡 Aplicação:** [Uma frase curta de resumo/ação]
 `;
 
 const READING_INSTRUCTION = `
 Você é uma Bíblia digital focada na Nova Versão Internacional (NVI).
 Sua ÚNICA função é fornecer o texto bíblico exato da referência solicitada.
-NÃO faça pregações, NÃO dê explicações, NÃO adicione introduções.
-Apenas forneça o texto formatado.
+Identifique variações como "1º Samuel", "Segunda Reis", "3 de João" e mapeie para o nome padrão.
+NÃO adicione comentários. Apenas o texto.
 
 FORMATO:
 **📖 [Referência Completa] (NVI)**
-
-[Texto dos versículos, respeitando parágrafos e pontuação]
+[Texto dos versículos]
 `;
 
 const SEARCH_INSTRUCTION = `
-Você é um motor de busca bíblica avançado focado na Nova Versão Internacional (NVI).
-O usuário fornecerá uma palavra-chave ou termo.
-Sua tarefa é listar os 5 a 10 versículos mais relevantes que contenham essa palavra ou se relacionem diretamente a ela na NVI.
-
-DIRETRIZES:
-1. Liste apenas versículos da NVI.
-2. Forneça a referência exata e o texto do versículo.
-3. Se o termo for genérico, busque os versículos mais conhecidos.
-4. Formate a saída em Markdown para facilitar a leitura.
-
-FORMATO DE SAÍDA:
-**🔎 Resultados para: "[Termo]"**
-
-**[Livro Capítulo:Versículo]**
-"[Texto do versículo na íntegra]"
-
-**[Livro Capítulo:Versículo]**
-"[Texto do versículo na íntegra]"
-
-... (Listar outros)
+Você é um motor de busca bíblica avançado na NVI.
+Liste os 5 a 10 versículos mais relevantes para o termo.
 `;
 
-// Helper para obter a chave e validar
-const getClient = (): GoogleGenAI => {
-  // O vite.config.ts substitui process.env.API_KEY por import.meta.env.VITE_API_KEY no build
-  const apiKey = process.env.API_KEY;
-  
-  if (!apiKey || apiKey.includes('Sua_Chave')) {
-    throw new Error("MISSING_KEY");
-  }
-  return new GoogleGenAI({ apiKey });
+const normalizeReference = (ref: string): string => {
+  return ref
+    .replace(/1[º°ª]|I\s|Primeir[ao]/gi, "1 ")
+    .replace(/2[º°ª]|II\s|Segund[ao]/gi, "2 ")
+    .replace(/3[º°ª]|III\s|Terceir[ao]/gi, "3 ")
+    .replace(/\s+/g, " ")
+    .trim();
 };
 
 const handleGeminiError = (error: any): string => {
   console.error("Gemini API Error:", error);
-  
-  if (error.message === "MISSING_KEY") {
-    return "⚠️ Chave de API não configurada. Por favor, configure a variável VITE_API_KEY no Vercel ou no arquivo .env localmente.";
-  }
-
   const errorMessage = error.toString().toLowerCase();
-
-  if (errorMessage.includes("429") || errorMessage.includes("quota")) {
-    return "⏳ O limite de uso gratuito da IA foi atingido temporariamente. Por favor, aguarde alguns minutos e tente novamente.";
-  }
-  
-  if (errorMessage.includes("503") || errorMessage.includes("overloaded")) {
-    return "📡 O serviço de IA está com alta demanda no momento. Tente novamente em breve.";
-  }
-
-  if (errorMessage.includes("safety") || errorMessage.includes("blocked")) {
-    return "🛡️ A resposta foi bloqueada pelos filtros de segurança. Tente reformular sua pergunta ou escolher um tema diferente.";
-  }
-
-  return "😔 Desculpe, ocorreu um erro inesperado ao conectar com a Inteligência Artificial. Verifique sua conexão e tente novamente.";
+  if (errorMessage.includes("429")) return "⏳ Limite atingido. Aguarde um instante.";
+  if (errorMessage.includes("safety")) return "🛡️ Conteúdo bloqueado por segurança.";
+  return "😔 Erro na conexão com a IA.";
 };
 
 export const generateExplanation = async (input: string, audience: AudienceType): Promise<string> => {
   try {
-    const ai = getClient();
-
-    // Map internal enum to prompt specific string
-    let audiencePrompt = "";
-    switch (audience) {
-      case AudienceType.CHILD:
-        audiencePrompt = "CRIANÇAS (4 a 10 anos)";
-        break;
-      case AudienceType.TEEN:
-        audiencePrompt = "ADOLESCENTES (11 a 17 anos)";
-        break;
-      case AudienceType.ADULT:
-        audiencePrompt = "ADULTOS (18+ anos)";
-        break;
-    }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const normalizedInput = normalizeReference(input);
+    
+    let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.7, 
-      },
-      contents: `Tema ou Passagem: "${input}". Público Alvo: ${audiencePrompt}`,
+      model: 'gemini-3-flash-preview',
+      config: { systemInstruction: SYSTEM_INSTRUCTION },
+      contents: `Tema/Passagem: "${normalizedInput}". Público: ${audiencePrompt}`,
     });
 
-    return response.text || "O sistema recebeu sua solicitação, mas não conseguiu gerar uma resposta textual. Tente reformular o pedido.";
+    return response.text || "Sem resposta.";
   } catch (error) {
     return handleGeminiError(error);
   }
@@ -142,18 +89,16 @@ export const generateExplanation = async (input: string, audience: AudienceType)
 
 export const getBibleText = async (reference: string): Promise<string> => {
   try {
-    const ai = getClient();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const normalizedRef = normalizeReference(reference);
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: READING_INSTRUCTION,
-        temperature: 0.1, // Low temperature for accuracy
-      },
-      contents: `Forneça o texto bíblico para: "${reference}"`,
+      model: 'gemini-3-flash-preview',
+      config: { systemInstruction: READING_INSTRUCTION },
+      contents: `Texto para: "${normalizedRef}"`,
     });
 
-    return response.text || "Não foi possível carregar o texto bíblico. Tente verificar a referência.";
+    return response.text || "Erro ao carregar texto.";
   } catch (error) {
     return handleGeminiError(error);
   }
@@ -161,18 +106,13 @@ export const getBibleText = async (reference: string): Promise<string> => {
 
 export const searchBibleVerses = async (keyword: string): Promise<string> => {
   try {
-    const ai = getClient();
-
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: SEARCH_INSTRUCTION,
-        temperature: 0.3, // Balanced for relevance
-      },
-      contents: `Encontre versículos com a palavra/tema: "${keyword}"`,
+      model: 'gemini-3-flash-preview',
+      config: { systemInstruction: SEARCH_INSTRUCTION },
+      contents: `Busca: "${keyword}"`,
     });
-
-    return response.text || "Nenhum versículo encontrado para este termo. Tente uma palavra diferente.";
+    return response.text || "Nada encontrado.";
   } catch (error) {
     return handleGeminiError(error);
   }
