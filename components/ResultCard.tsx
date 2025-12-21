@@ -55,8 +55,6 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional
     }
   };
 
-  const isVerseRef = currentReference?.includes(':');
-
   const styles = isDevotional ? {
     container: "bg-slate-900 border-brand-400 shadow-2xl shadow-brand-400/5",
     heading: "text-brand-400 font-black border-b border-slate-800 pb-3 mb-6 mt-8 uppercase tracking-widest text-xs",
