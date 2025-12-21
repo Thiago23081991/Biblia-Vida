@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AudienceType, HistoryItem, InputMode } from './types';
 import { generateExplanation, getBibleText, searchBibleVerses, generateDevotional } from './services/geminiService';
 import { bibleBooks } from './data/bibleBooks';
@@ -10,8 +10,7 @@ import StudySelector from './components/StudySelector';
 import ReadingPlanView from './components/ReadingPlanView';
 import ThematicPlansView from './components/ThematicPlansView';
 import DevotionalView from './components/DevotionalView';
-// Fix: Added Loader2 to the list of imports from lucide-react
-import { Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library, Coffee, Eraser, Loader2 } from 'lucide-react';
+import { Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library, Coffee, Eraser, Loader2, Key } from 'lucide-react';
 
 const App: React.FC = () => {
   const [inputMode, setInputMode] = useState<InputMode>('devotional');
@@ -28,8 +27,35 @@ const App: React.FC = () => {
   const [isDevotionalResult, setIsDevotionalResult] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(true);
+
+  // Verifica se a chave de API está presente ou precisa ser selecionada
+  useEffect(() => {
+    const checkKey = async () => {
+      if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
+        const hasKey = await window.aistudio.hasSelectedApiKey();
+        setHasApiKey(hasKey);
+      } else {
+        // Se não estiver no ambiente aistudio, assume que process.env.API_KEY deve existir
+        setHasApiKey(!!process.env.API_KEY);
+      }
+    };
+    checkKey();
+  }, []);
+
+  const handleOpenKeySelector = async () => {
+    if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
+      await window.aistudio.openSelectKey();
+      setHasApiKey(true);
+    }
+  };
 
   const handleGenerate = async (forcedInput?: string) => {
+    if (!hasApiKey) {
+      handleOpenKeySelector();
+      return;
+    }
+
     let inputToUse = forcedInput || '';
     if (!forcedInput) {
       if (inputMode === 'free') inputToUse = inputText;
@@ -46,17 +72,19 @@ const App: React.FC = () => {
 
     try {
       const generatedText = await generateExplanation(inputToUse, selectedAudience);
+      if (generatedText.includes("🔑 Erro")) {
+        setHasApiKey(false);
+      }
       setResult(generatedText);
-      addToHistory(inputToUse, selectedAudience, generatedText);
-      if (inputMode === 'free' && !forcedInput) setInputText('');
-      if (inputMode === 'study' && !forcedInput) setStudyTopic('');
+      if (!generatedText.includes("Erro")) {
+        addToHistory(inputToUse, selectedAudience, generatedText);
+      }
       
       setTimeout(() => {
         document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
     } catch (error) {
-      console.error(error);
-      setResult("Ocorreu um erro ao gerar a explicação. Tente novamente em instantes.");
+      setResult("Ocorreu um erro ao gerar a explicação. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -71,7 +99,9 @@ const App: React.FC = () => {
     try {
       const devotional = await generateDevotional(ref, selectedAudience);
       setResult(devotional);
-      addToHistory(ref, selectedAudience, devotional);
+      if (!devotional.includes("Erro")) {
+        addToHistory(ref, selectedAudience, devotional);
+      }
       setTimeout(() => {
         document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
@@ -204,14 +234,24 @@ const App: React.FC = () => {
               <p className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter mt-0.5">Teologia NVI & IA</p>
             </div>
           </div>
-          <button 
-            onClick={() => setShowHistory(true)}
-            className="p-2 text-slate-500 hover:bg-slate-100 active:scale-95 rounded-full transition-all relative"
-            aria-label="Ver Histórico"
-          >
-            <HistoryIcon size={20} className="md:w-6 md:h-6" />
-            {history.length > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full ring-2 ring-white"></span>}
-          </button>
+          <div className="flex items-center gap-2">
+            {!hasApiKey && (
+              <button 
+                onClick={handleOpenKeySelector}
+                className="flex items-center gap-2 px-3 py-1.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-rose-200 transition-all border border-rose-200 animate-pulse"
+              >
+                <Key size={12} /> Selecionar Chave
+              </button>
+            )}
+            <button 
+              onClick={() => setShowHistory(true)}
+              className="p-2 text-slate-500 hover:bg-slate-100 active:scale-95 rounded-full transition-all relative"
+              aria-label="Ver Histórico"
+            >
+              <HistoryIcon size={20} className="md:w-6 md:h-6" />
+              {history.length > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full ring-2 ring-white"></span>}
+            </button>
+          </div>
         </div>
       </header>
 
