@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { thematicPlans, ThematicPlan } from '../data/thematicPlans';
-import { BookOpen, Sparkles, ChevronLeft, Clock, Tag, CheckCircle2, ArrowRight, Loader2, Filter, Users, Heart, GraduationCap, Zap } from 'lucide-react';
+import { BookOpen, Sparkles, ChevronLeft, Clock, ArrowRight, Loader2, Filter, Users, Heart, GraduationCap, Zap } from 'lucide-react';
 
 interface ThematicPlansViewProps {
   onSelectAction: (ref: string, mode: 'read' | 'explain') => void;

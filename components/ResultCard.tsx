@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { AudienceType } from '../types';
-import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Instagram, Smartphone } from 'lucide-react';
+import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone } from 'lucide-react';
 
 interface ResultCardProps {
   content: string;

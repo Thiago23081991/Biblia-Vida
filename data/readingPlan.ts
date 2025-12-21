@@ -16,14 +16,11 @@ export interface DailyReading {
 // Helper para encontrar a referência baseada no índice global de capítulos (1-1189)
 const getReferenceFromGlobalIndex = (startIndex: number, count: number): string => {
   let currentGlobal = 0;
-  let startRef = "";
-  let endRef = "";
 
   // Encontrar o início
   for (const book of bibleBooks) {
     if (currentGlobal + book.chapters >= startIndex) {
       const chapterInBook = startIndex - currentGlobal;
-      startRef = `${book.name} ${chapterInBook}`;
       
       // Encontrar o fim (pode estar no mesmo livro ou no próximo)
       const endIndex = startIndex + count - 1;

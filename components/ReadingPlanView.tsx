@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { getReadingForDate, DailyReading } from '../data/readingPlan';
+import { getReadingForDate } from '../data/readingPlan';
 import { ReadingPlanType } from '../types';
 import { Calendar, ChevronLeft, ChevronRight, BookOpen, Sparkles, LayoutList, Layers, History, Heart, Loader2 } from 'lucide-react';
 
