@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import BibleSelector from './BibleSelector';
-import { Coffee, Sparkles, BookOpen, Loader2, Quote, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Coffee, Sparkles, BookOpen, Loader2, Quote, ChevronDown, ChevronUp, RefreshCw, Heart, Shield, Sun, Target, Wind } from 'lucide-react';
 
 interface DevotionalViewProps {
   onGenerate: (ref: string) => void;
@@ -9,24 +9,39 @@ interface DevotionalViewProps {
   isLoading: boolean;
 }
 
+interface DevotionalSuggestion {
+  theme: string;
+  ref: string;
+  icon: any;
+  color: string;
+}
+
 const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isLoading }) => {
   const [selectedRef, setSelectedRef] = useState('Salmos 23');
   const [showSelector, setShowSelector] = useState(false);
   
-  const suggestions = [
-    "Jeremias 29:11", "Filipenses 4:13", "Isaías 40:31", "Salmos 46:1", 
-    "João 14:27", "Mateus 11:28", "Romanos 8:28", "Salmos 121", 
-    "Lamentações 3:22-23", "Josué 1:9", "1 Pedro 5:7", "Salmos 34:18"
+  const categories: DevotionalSuggestion[] = [
+    { theme: "Paz", ref: "Filipenses 4:6-7", icon: Wind, color: "from-cyan-50 to-blue-100 text-blue-700" },
+    { theme: "Identidade", ref: "1 Pedro 2:9", icon: Heart, color: "from-rose-50 to-pink-100 text-rose-700" },
+    { theme: "Coragem", ref: "Josué 1:9", icon: Shield, color: "from-amber-50 to-orange-100 text-orange-700" },
+    { theme: "Propósito", ref: "Jeremias 29:11", icon: Target, color: "from-indigo-50 to-purple-100 text-indigo-700" },
+    { theme: "Esperança", ref: "Isaías 40:31", icon: Sun, color: "from-yellow-50 to-amber-100 text-amber-700" },
   ];
-  
+
+  const handleSuggestionClick = (ref: string) => {
+    setSelectedRef(ref);
+    setShowSelector(false);
+  };
+
   const handleRandomSuggestion = () => {
-    const random = suggestions[Math.floor(Math.random() * suggestions.length)];
+    const randoms = ["Mateus 11:28", "Romanos 8:28", "Salmos 121", "João 14:27", "2 Timóteo 1:7"];
+    const random = randoms[Math.floor(Math.random() * randoms.length)];
     setSelectedRef(random);
   };
 
   return (
     <div className="animate-fade-in flex flex-col gap-4">
-      {/* Hero Devocional - Ultra compacto no Mobile */}
+      {/* Hero Devocional */}
       <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 text-white shadow-lg overflow-hidden relative">
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-1 md:mb-4">
@@ -41,18 +56,45 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 p-4 md:p-8 shadow-sm">
+        {/* Curadoria de Temas - Grid Responsivo */}
+        <div className="mb-8">
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Escolha um Tema para Meditar</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
+            {categories.map((cat, idx) => {
+              const Icon = cat.icon;
+              const isSelected = selectedRef === cat.ref;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleSuggestionClick(cat.ref)}
+                  className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 px-3 py-4 md:px-4 md:py-3 rounded-2xl border-2 transition-all active:scale-95
+                    ${isSelected 
+                      ? 'bg-white border-indigo-500 shadow-md ring-4 ring-indigo-50 z-10' 
+                      : `bg-gradient-to-br ${cat.color} border-transparent hover:shadow-sm hover:border-slate-200`
+                    }
+                  `}
+                >
+                  <Icon size={18} className="md:w-4 md:h-4" />
+                  <span className="text-xs font-black tracking-tight">{cat.theme}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Passagem de Hoje</h3>
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Referência Ativa</h3>
             <button 
               onClick={handleRandomSuggestion}
               className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors active:rotate-180 duration-500"
+              title="Passagem Aleatória"
             >
               <RefreshCw size={14} />
             </button>
           </div>
 
-          {/* Card de Referência Ativa - Mais Compacto */}
+          {/* Card de Referência Ativa */}
           <button 
             onClick={() => setShowSelector(!showSelector)}
             className={`w-full flex items-center justify-between p-3 md:p-5 rounded-2xl border-2 transition-all active:scale-[0.98]
@@ -88,7 +130,7 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
           )}
         </div>
 
-        {/* Botões de Ação - Grid Otimizado para Mobile */}
+        {/* Botões de Ação */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button
             onClick={() => onRead(selectedRef)}
