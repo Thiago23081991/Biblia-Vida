@@ -10,7 +10,7 @@ import StudySelector from './components/StudySelector';
 import ReadingPlanView from './components/ReadingPlanView';
 import ThematicPlansView from './components/ThematicPlansView';
 import DevotionalView from './components/DevotionalView';
-import { Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library, Coffee, Eraser, Loader2, Key, AlertCircle } from 'lucide-react';
+import { Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library, Coffee, Eraser, Loader2, Key, AlertCircle, Timer } from 'lucide-react';
 
 const App: React.FC = () => {
   const [inputMode, setInputMode] = useState<InputMode>('devotional');
@@ -18,7 +18,6 @@ const App: React.FC = () => {
   const [pickerText, setPickerText] = useState('Gênesis 1');
   const [searchText, setSearchText] = useState('');
   const [studyTopic, setStudyTopic] = useState('');
-  const [bibleSelectorKey] = useState(0);
   const [selectedAudience, setSelectedAudience] = useState<AudienceType>(AudienceType.ADULT);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -28,6 +27,7 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(true);
+  const [quotaWaitTime, setQuotaWaitTime] = useState(0);
 
   const checkApiKey = async () => {
     if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
@@ -45,24 +45,37 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Timer para o erro de Quota
+  useEffect(() => {
+    if (quotaWaitTime > 0) {
+      const timer = setInterval(() => {
+        setQuotaWaitTime(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [quotaWaitTime]);
+
   const handleOpenKeySelector = async () => {
     if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
       await window.aistudio.openSelectKey();
       setHasApiKey(true);
-    } else {
-      alert("Ambiente sem suporte a seletor de chave. Configure a variável API_KEY nas configurações do seu projeto (Vercel/Local).");
     }
   };
 
   const processResponse = (response: string) => {
     if (response.startsWith("KEY_ERROR")) {
       setHasApiKey(false);
-      return "⚠️ Sua chave de API parece não ter permissão para este modelo ou expirou. Por favor, clique em 'Ativar Agora' ou selecione uma chave válida.";
+      return "⚠️ Sua chave de API parece inválida ou sem permissão. Por favor, ative-a novamente.";
+    }
+    if (response.startsWith("QUOTA_ERROR")) {
+      setQuotaWaitTime(60); // Inicia espera de 1 minuto
+      return response.replace("QUOTA_ERROR: ", "⏳ ");
     }
     return response;
   };
 
   const handleGenerate = async (forcedInput?: string) => {
+    if (quotaWaitTime > 0) return;
     let inputToUse = forcedInput || '';
     if (!forcedInput) {
       if (inputMode === 'free') inputToUse = inputText;
@@ -82,7 +95,7 @@ const App: React.FC = () => {
       const finalResponse = processResponse(rawResponse);
       setResult(finalResponse);
       
-      if (!rawResponse.startsWith("KEY_ERROR") && !rawResponse.includes("😔")) {
+      if (!rawResponse.includes("ERROR") && !rawResponse.includes("😔")) {
         addToHistory(inputToUse, selectedAudience, finalResponse);
       }
       
@@ -90,13 +103,14 @@ const App: React.FC = () => {
         document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
     } catch (error) {
-      setResult("Erro crítico na requisição. Verifique sua chave de API.");
+      setResult("Erro crítico na requisição.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleGenerateDevotional = async (ref: string) => {
+    if (quotaWaitTime > 0) return;
     setLoading(true);
     setResult(null);
     setIsReadingMode(false);
@@ -106,7 +120,7 @@ const App: React.FC = () => {
       const rawResponse = await generateDevotional(ref, selectedAudience);
       const finalResponse = processResponse(rawResponse);
       setResult(finalResponse);
-      if (!rawResponse.startsWith("KEY_ERROR") && !rawResponse.includes("😔")) {
+      if (!rawResponse.includes("ERROR") && !rawResponse.includes("😔")) {
         addToHistory(ref, selectedAudience, finalResponse);
       }
       setTimeout(() => {
@@ -120,6 +134,7 @@ const App: React.FC = () => {
   };
 
   const handleReadBible = async (forcedInput?: string) => {
+    if (quotaWaitTime > 0) return;
     let inputToUse = forcedInput || (inputMode === 'bible' ? pickerText : inputText);
     if (!inputToUse.trim()) return;
     setLoading(true);
@@ -141,50 +156,50 @@ const App: React.FC = () => {
     }
   };
 
+  // Fix: Implemented handleNavigateReference to handle chapter navigation in reading mode
   const handleNavigateReference = (direction: 'prev' | 'next') => {
-    const refMatch = currentReference.match(/^(.+?)\s(\d+)(?::(\d+)(?:-(\d+))?)?$/);
-    if (!refMatch) return;
+    const match = currentReference.match(/^(.+?)\s+(\d+)/);
+    if (!match) return;
 
-    const [_, bookName, chapterStr, verseStartStr, verseEndStr] = refMatch;
-    let chapter = parseInt(chapterStr);
-    let verseStart = verseStartStr ? parseInt(verseStartStr) : null;
-    let verseEnd = verseEndStr ? parseInt(verseEndStr) : null;
+    const bookName = match[1];
+    const chapter = parseInt(match[2]);
 
-    const book = bibleBooks.find(b => b.name === bookName);
-    if (!book) return;
+    const bookIndex = bibleBooks.findIndex(b => b.name === bookName);
+    if (bookIndex === -1) return;
 
-    if (verseStart !== null) {
-      if (direction === 'next') {
-        const nextVerse = (verseEnd || verseStart) + 1;
-        handleReadBible(`${bookName} ${chapter}:${nextVerse}`);
-      } else {
-        const prevVerse = Math.max(1, verseStart - 1);
-        handleReadBible(`${bookName} ${chapter}:${prevVerse}`);
+    const book = bibleBooks[bookIndex];
+
+    let newBookIndex = bookIndex;
+    let newChapter = chapter;
+
+    if (direction === 'next') {
+      newChapter++;
+      if (newChapter > book.chapters) {
+        if (bookIndex < bibleBooks.length - 1) {
+          newBookIndex++;
+          newChapter = 1;
+        } else {
+          newChapter = book.chapters;
+        }
       }
     } else {
-      if (direction === 'next') {
-        if (chapter < book.chapters) handleReadBible(`${bookName} ${chapter + 1}`);
-        else {
-          const bookIndex = bibleBooks.findIndex(b => b.name === bookName);
-          if (bookIndex < bibleBooks.length - 1) {
-            handleReadBible(`${bibleBooks[bookIndex + 1].name} 1`);
-          }
-        }
-      } else {
-        if (chapter > 1) handleReadBible(`${bookName} ${chapter - 1}`);
-        else {
-          const bookIndex = bibleBooks.findIndex(b => b.name === bookName);
-          if (bookIndex > 0) {
-            const prevBook = bibleBooks[bookIndex - 1];
-            handleReadBible(`${prevBook.name} ${prevBook.chapters}`);
-          }
+      newChapter--;
+      if (newChapter < 1) {
+        if (bookIndex > 0) {
+          newBookIndex--;
+          newChapter = bibleBooks[newBookIndex].chapters;
+        } else {
+          newChapter = 1;
         }
       }
     }
+
+    const nextRef = `${bibleBooks[newBookIndex].name} ${newChapter}`;
+    handleReadBible(nextRef);
   };
 
   const handleSearch = async () => {
-    if (!searchText.trim()) return;
+    if (quotaWaitTime > 0 || !searchText.trim()) return;
     setLoading(true);
     setResult(null);
     setIsReadingMode(true);
@@ -236,7 +251,7 @@ const App: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-2.5 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 group cursor-default">
             <div className="bg-brand-600 p-1.5 rounded-lg text-white shadow-md transition-transform group-hover:scale-105">
-              <Book size={18} className="md:w-6 md:h-6" />
+              < Book size={18} className="md:w-6 md:h-6" />
             </div>
             <div>
               <h1 className="text-sm md:text-xl font-black text-slate-900 tracking-tight leading-none">Bíblia Viva</h1>
@@ -265,6 +280,7 @@ const App: React.FC = () => {
       </header>
 
       <main className="w-full max-w-4xl mx-auto px-4 py-4 md:py-8 flex-grow">
+        {/* Aviso de Chave Faltando */}
         {!hasApiKey && (
           <div className="mb-8 bg-rose-50 border-2 border-rose-100 rounded-3xl p-6 flex flex-col items-center text-center gap-4 animate-fade-in shadow-xl shadow-rose-100/20">
             <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center">
@@ -272,8 +288,7 @@ const App: React.FC = () => {
             </div>
             <div>
               <h2 className="text-xl font-black text-rose-900 leading-tight">Chave de API Necessária</h2>
-              <p className="text-sm text-rose-700 mt-2 max-w-sm">Para ativar os recursos de IA, você precisa selecionar uma chave do Google AI Studio ou configurar a variável API_KEY nas configurações do projeto.</p>
-              <p className="text-[10px] text-rose-400 mt-2 font-bold uppercase">Nota: Projetos na Vercel exigem redeploy após salvar variáveis.</p>
+              <p className="text-sm text-rose-700 mt-2 max-w-sm">Para ativar os recursos de IA, configure a variável API_KEY nas configurações do projeto.</p>
             </div>
             <button 
               onClick={handleOpenKeySelector}
@@ -281,6 +296,22 @@ const App: React.FC = () => {
             >
               <Key size={18} /> Ativar Agora
             </button>
+          </div>
+        )}
+
+        {/* Aviso de Limite de Quota (429) */}
+        {quotaWaitTime > 0 && (
+          <div className="mb-8 bg-amber-50 border-2 border-amber-100 rounded-3xl p-6 flex items-center gap-4 animate-fade-in shadow-lg">
+            <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center flex-shrink-0 animate-pulse">
+              <Timer size={24} />
+            </div>
+            <div className="flex-grow">
+              <h3 className="font-black text-amber-900 text-sm md:text-base">Limite do Google Atingido</h3>
+              <p className="text-xs text-amber-700 leading-snug">A versão gratuita do Gemini tem um limite de 15 perguntas por minuto. Aguarde um instante.</p>
+            </div>
+            <div className="bg-amber-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-black shadow-md border-4 border-white">
+              {quotaWaitTime}s
+            </div>
           </div>
         )}
 
@@ -319,28 +350,28 @@ const App: React.FC = () => {
             )}
 
             <div className={['plan', 'thematic'].includes(inputMode) ? '' : 'min-h-[80px]'}>
-              {inputMode === 'devotional' && <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading} />}
-              {inputMode === 'plan' && <ReadingPlanView onSelectReference={handlePlanAction} isLoading={loading} />}
-              {inputMode === 'thematic' && <ThematicPlansView onSelectAction={handlePlanAction} isLoading={loading} />}
+              {inputMode === 'devotional' && <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading || quotaWaitTime > 0} />}
+              {inputMode === 'plan' && <ReadingPlanView onSelectReference={handlePlanAction} isLoading={loading || quotaWaitTime > 0} />}
+              {inputMode === 'thematic' && <ThematicPlansView onSelectAction={handlePlanAction} isLoading={loading || quotaWaitTime > 0} />}
               {inputMode === 'free' && (
                 <div className="relative group">
                   <textarea
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Ex: Por que Deus permitiu o dilúvio? Ou: Explique a Graça em Romanos."
-                    className="w-full p-5 md:p-8 rounded-3xl border border-slate-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/5 transition-all outline-none resize-none h-40 md:h-56 text-base md:text-lg bg-slate-50/30 font-serif"
+                    placeholder="Ex: Por que Deus permitiu o dilúvio?"
+                    className="w-full p-5 md:p-8 rounded-3xl border border-slate-300 focus:border-brand-500 outline-none resize-none h-40 md:h-56 text-base md:text-lg bg-slate-50/30 font-serif"
                   />
                   {inputText && (
                     <button 
                       onClick={() => setInputText('')}
-                      className="absolute top-3 right-3 p-2 bg-white/80 hover:bg-white text-slate-400 hover:text-rose-500 rounded-full shadow-sm transition-all"
+                      className="absolute top-3 right-3 p-2 bg-white/80 text-slate-400 hover:text-rose-500 rounded-full shadow-sm transition-all"
                     >
                       <Eraser size={16} />
                     </button>
                   )}
                 </div>
               )}
-              {inputMode === 'bible' && <BibleSelector key={bibleSelectorKey} onSelectionChange={setPickerText} />}
+              {inputMode === 'bible' && <BibleSelector onSelectionChange={setPickerText} />}
               {inputMode === 'study' && <StudySelector onSelectTopic={setStudyTopic} />}
               {inputMode === 'search' && (
                 <div className="relative group">
@@ -350,9 +381,9 @@ const App: React.FC = () => {
                     onChange={(e) => setSearchText(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     placeholder="Palavra ou frase..."
-                    className="w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl md:rounded-3xl border border-slate-300 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 outline-none text-base md:text-lg bg-slate-50/30"
+                    className="w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl md:rounded-3xl border border-slate-300 focus:border-brand-500 outline-none text-base md:text-lg bg-slate-50/30"
                   />
-                  <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-brand-500" />
+                  <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 </div>
               )}
             </div>
@@ -368,7 +399,7 @@ const App: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => handleReadBible()}
-                      disabled={loading || (inputMode === 'free' && !inputText.trim())}
+                      disabled={loading || quotaWaitTime > 0 || (inputMode === 'free' && !inputText.trim())}
                       className="flex items-center justify-center gap-2.5 h-14 rounded-2xl font-bold text-slate-700 bg-white border-2 border-slate-200 hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-40"
                     >
                       <BookOpen size={20} />
@@ -376,7 +407,7 @@ const App: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleGenerate()}
-                      disabled={loading || (inputMode === 'free' && !inputText.trim())}
+                      disabled={loading || quotaWaitTime > 0 || (inputMode === 'free' && !inputText.trim())}
                       className="flex items-center justify-center gap-2.5 h-14 rounded-2xl font-bold text-white bg-brand-600 hover:bg-brand-700 active:scale-95 shadow-md shadow-brand-100 transition-all disabled:bg-slate-300"
                     >
                       {loading ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
@@ -390,7 +421,7 @@ const App: React.FC = () => {
             {inputMode === 'search' && (
               <button
                 onClick={handleSearch}
-                disabled={loading || !searchText.trim()}
+                disabled={loading || quotaWaitTime > 0 || !searchText.trim()}
                 className="w-full mt-4 flex items-center justify-center gap-3 h-14 rounded-2xl font-bold text-white bg-brand-600 hover:bg-brand-700 active:scale-95 transition-all shadow-md disabled:bg-slate-200"
               >
                 {loading ? <Loader2 size={20} className="animate-spin" /> : <Search size={20} />}

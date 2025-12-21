@@ -10,7 +10,6 @@ Seu objetivo é receber uma passagem bíblica ou um tema e explicá-lo de acordo
 
 REGRAS DE REFERÊNCIA:
 - Você deve identificar corretamente livros numerados mesmo que escritos de formas diferentes (ex: 1 Samuel, 1º Samuel, I Samuel, Primeira Samuel).
-- Ignore termos como "cap", "capítulo", "v" ou "versículo" e foque na numeração correta.
 
 MODOS DE OPERAÇÃO:
 1. CRIANÇAS (4 a 10 anos): Tom lúdico, histórias simples, analogias concretas e muitos emojis.
@@ -26,7 +25,6 @@ FORMATO DE SAÍDA OBRIGATÓRIO (Markdown):
 
 const READING_INSTRUCTION = `
 Você é uma Bíblia digital NVI. Forneça APENAS o texto bíblico exato da referência. Não interprete nem resuma.
-FORMATO: **📖 [Livro] [Capítulo]:[Versículos] (NVI)** [Texto]
 `;
 
 const DEVOTIONAL_INSTRUCTION = `
@@ -38,22 +36,16 @@ const handleGeminiError = (error: any): string => {
   console.error("Gemini Error:", error);
   const msg = error?.message?.toLowerCase() || "";
   
-  // Se a entidade não foi encontrada ou a chave é inválida, precisamos resetar o estado da chave no App
   if (msg.includes("401") || msg.includes("403") || msg.includes("api_key_invalid") || msg.includes("requested entity was not found")) {
-    return "KEY_ERROR: Chave de API inválida, sem permissão ou expidada. Por favor, selecione uma chave válida do Google AI Studio.";
+    return "KEY_ERROR: Chave de API inválida ou sem permissão.";
   }
-  if (msg.includes("429") || msg.includes("quota")) {
-    return "⏳ Limite de uso atingido (Quota). Aguarde um minuto e tente novamente.";
+  
+  // Tratamento específico de Quota (429)
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("too many requests")) {
+    return "QUOTA_ERROR: O Google limitou o uso temporariamente. Como você está usando a versão gratuita, o Google permite apenas algumas consultas por minuto. Por favor, aguarde cerca de 60 segundos e tente novamente.";
   }
-  return "😔 Erro de conexão. Verifique sua internet ou se o modelo está disponível em sua região.";
-};
 
-const normalizeReference = (ref: string): string => {
-  return ref
-    .replace(/1[º°ª]|I\s|Primeir[ao]/gi, "1 ")
-    .replace(/2[º°ª]|II\s|Segund[ao]/gi, "2 ")
-    .replace(/3[º°ª]|III\s|Terceir[ao]/gi, "3 ")
-    .trim();
+  return "😔 Erro de conexão. Verifique sua internet ou tente novamente em instantes.";
 };
 
 const getAiInstance = () => {
@@ -67,13 +59,12 @@ const getAiInstance = () => {
 export const generateExplanation = async (input: string, audience: AudienceType): Promise<string> => {
   try {
     const ai = getAiInstance();
-    const normalizedInput = normalizeReference(input);
     const audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { systemInstruction: SYSTEM_INSTRUCTION, temperature: 0.7 },
-      contents: [{ parts: [{ text: `Tema/Passagem: "${normalizedInput}". Público: ${audiencePrompt}` }] }],
+      contents: [{ parts: [{ text: `Tema/Passagem: "${input}". Público: ${audiencePrompt}` }] }],
     });
 
     return response.text || "Sem resposta.";
