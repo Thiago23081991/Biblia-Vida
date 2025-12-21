@@ -8,9 +8,6 @@ const SYSTEM_INSTRUCTION = `
 Você é um Especialista em Teologia Bíblica e Educação Cristã. Sua base textual é estritamente a Bíblia Nova Versão Internacional (NVI).
 Seu objetivo é receber uma passagem bíblica ou um tema e explicá-lo de acordo com o público-alvo solicitado.
 
-REGRAS DE REFERÊNCIA:
-- Você deve identificar corretamente livros numerados mesmo que escritos de formas diferentes (ex: 1 Samuel, 1º Samuel, I Samuel, Primeira Samuel).
-
 MODOS DE OPERAÇÃO:
 1. CRIANÇAS (4 a 10 anos): Tom lúdico, histórias simples, analogias concretas e muitos emojis.
 2. ADOLESCENTES (11 a 17 anos): Tom dinâmico, conexão com dilemas modernos, aplicação prática e identidade.
@@ -21,10 +18,6 @@ FORMATO DE SAÍDA OBRIGATÓRIO (Markdown):
 **🎯 Público:** [Público Escolhido]
 **💬 Explicação:** [Texto adaptado]
 **💡 Aplicação:** [Uma frase curta de resumo/ação]
-`;
-
-const READING_INSTRUCTION = `
-Você é uma Bíblia digital NVI. Forneça APENAS o texto bíblico exato da referência. Não interprete nem resuma.
 `;
 
 const DEVOTIONAL_INSTRUCTION = `
@@ -40,12 +33,11 @@ const handleGeminiError = (error: any): string => {
     return "KEY_ERROR: Chave de API inválida ou sem permissão.";
   }
   
-  // Tratamento específico de Quota (429)
   if (msg.includes("429") || msg.includes("quota") || msg.includes("too many requests")) {
-    return "QUOTA_ERROR: O Google limitou o uso temporariamente. Como você está usando a versão gratuita, o Google permite apenas algumas consultas por minuto. Por favor, aguarde cerca de 60 segundos e tente novamente.";
+    return "QUOTA_ERROR: O Google limitou o uso da IA temporariamente. Aguarde 60 segundos.";
   }
 
-  return "😔 Erro de conexão. Verifique sua internet ou tente novamente em instantes.";
+  return "😔 Erro de conexão com a IA. Tente novamente em instantes.";
 };
 
 const getAiInstance = () => {
@@ -68,20 +60,6 @@ export const generateExplanation = async (input: string, audience: AudienceType)
     });
 
     return response.text || "Sem resposta.";
-  } catch (error) {
-    return handleGeminiError(error);
-  }
-};
-
-export const getBibleText = async (reference: string): Promise<string> => {
-  try {
-    const ai = getAiInstance();
-    const response = await ai.models.generateContent({
-      model: MODEL_NAME,
-      config: { systemInstruction: READING_INSTRUCTION, temperature: 0.1 },
-      contents: [{ parts: [{ text: `Texto NVI para: "${reference}"` }] }],
-    });
-    return response.text || "Referência não encontrada.";
   } catch (error) {
     return handleGeminiError(error);
   }
