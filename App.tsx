@@ -10,7 +10,7 @@ import StudySelector from './components/StudySelector';
 import ReadingPlanView from './components/ReadingPlanView';
 import ThematicPlansView from './components/ThematicPlansView';
 import DevotionalView from './components/DevotionalView';
-import { Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library, Coffee, Eraser, Loader2, Key } from 'lucide-react';
+import { Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library, Coffee, Eraser, Loader2, Key, AlertCircle } from 'lucide-react';
 
 const App: React.FC = () => {
   const [inputMode, setInputMode] = useState<InputMode>('devotional');
@@ -29,33 +29,40 @@ const App: React.FC = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(true);
 
-  // Verifica se a chave de API está presente ou precisa ser selecionada
+  const checkApiKey = async () => {
+    if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
+      const hasKey = await window.aistudio.hasSelectedApiKey();
+      setHasApiKey(hasKey);
+    } else {
+      const envKey = process.env.API_KEY;
+      setHasApiKey(!!(envKey && envKey !== "undefined" && envKey !== ""));
+    }
+  };
+
   useEffect(() => {
-    const checkKey = async () => {
-      if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
-        const hasKey = await window.aistudio.hasSelectedApiKey();
-        setHasApiKey(hasKey);
-      } else {
-        // Se não estiver no ambiente aistudio, assume que process.env.API_KEY deve existir
-        setHasApiKey(!!process.env.API_KEY);
-      }
-    };
-    checkKey();
+    checkApiKey();
+    const interval = setInterval(checkApiKey, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleOpenKeySelector = async () => {
     if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
       await window.aistudio.openSelectKey();
       setHasApiKey(true);
+    } else {
+      alert("Ambiente sem suporte a seletor de chave. Configure a variável API_KEY nas configurações do seu projeto (Vercel/Local).");
     }
   };
 
-  const handleGenerate = async (forcedInput?: string) => {
-    if (!hasApiKey) {
-      handleOpenKeySelector();
-      return;
+  const processResponse = (response: string) => {
+    if (response.startsWith("KEY_ERROR")) {
+      setHasApiKey(false);
+      return "⚠️ Sua chave de API parece não ter permissão para este modelo ou expirou. Por favor, clique em 'Ativar Agora' ou selecione uma chave válida.";
     }
+    return response;
+  };
 
+  const handleGenerate = async (forcedInput?: string) => {
     let inputToUse = forcedInput || '';
     if (!forcedInput) {
       if (inputMode === 'free') inputToUse = inputText;
@@ -71,20 +78,19 @@ const App: React.FC = () => {
     setCurrentReference(inputToUse);
 
     try {
-      const generatedText = await generateExplanation(inputToUse, selectedAudience);
-      if (generatedText.includes("🔑 Erro")) {
-        setHasApiKey(false);
-      }
-      setResult(generatedText);
-      if (!generatedText.includes("Erro")) {
-        addToHistory(inputToUse, selectedAudience, generatedText);
+      const rawResponse = await generateExplanation(inputToUse, selectedAudience);
+      const finalResponse = processResponse(rawResponse);
+      setResult(finalResponse);
+      
+      if (!rawResponse.startsWith("KEY_ERROR") && !rawResponse.includes("😔")) {
+        addToHistory(inputToUse, selectedAudience, finalResponse);
       }
       
       setTimeout(() => {
         document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
     } catch (error) {
-      setResult("Ocorreu um erro ao gerar a explicação. Tente novamente.");
+      setResult("Erro crítico na requisição. Verifique sua chave de API.");
     } finally {
       setLoading(false);
     }
@@ -97,10 +103,11 @@ const App: React.FC = () => {
     setIsDevotionalResult(true);
     setCurrentReference(ref);
     try {
-      const devotional = await generateDevotional(ref, selectedAudience);
-      setResult(devotional);
-      if (!devotional.includes("Erro")) {
-        addToHistory(ref, selectedAudience, devotional);
+      const rawResponse = await generateDevotional(ref, selectedAudience);
+      const finalResponse = processResponse(rawResponse);
+      setResult(finalResponse);
+      if (!rawResponse.startsWith("KEY_ERROR") && !rawResponse.includes("😔")) {
+        addToHistory(ref, selectedAudience, finalResponse);
       }
       setTimeout(() => {
         document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -121,8 +128,9 @@ const App: React.FC = () => {
     setIsDevotionalResult(false);
     setCurrentReference(inputToUse);
     try {
-      const bibleText = await getBibleText(inputToUse);
-      setResult(bibleText);
+      const rawResponse = await getBibleText(inputToUse);
+      const finalResponse = processResponse(rawResponse);
+      setResult(finalResponse);
       setTimeout(() => {
         document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
@@ -182,8 +190,9 @@ const App: React.FC = () => {
     setIsReadingMode(true);
     setIsDevotionalResult(false);
     try {
-      const searchResults = await searchBibleVerses(searchText);
-      setResult(searchResults);
+      const rawResponse = await searchBibleVerses(searchText);
+      const finalResponse = processResponse(rawResponse);
+      setResult(finalResponse);
     } catch (error) {
       setResult("Ocorreu um erro ao realizar a busca.");
     } finally {
@@ -238,7 +247,7 @@ const App: React.FC = () => {
             {!hasApiKey && (
               <button 
                 onClick={handleOpenKeySelector}
-                className="flex items-center gap-2 px-3 py-1.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-rose-200 transition-all border border-rose-200 animate-pulse"
+                className="flex items-center gap-2 px-3 py-1.5 bg-rose-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all border border-rose-500 shadow-lg animate-bounce"
               >
                 <Key size={12} /> Selecionar Chave
               </button>
@@ -256,6 +265,25 @@ const App: React.FC = () => {
       </header>
 
       <main className="w-full max-w-4xl mx-auto px-4 py-4 md:py-8 flex-grow">
+        {!hasApiKey && (
+          <div className="mb-8 bg-rose-50 border-2 border-rose-100 rounded-3xl p-6 flex flex-col items-center text-center gap-4 animate-fade-in shadow-xl shadow-rose-100/20">
+            <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center">
+              <AlertCircle size={32} />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-rose-900 leading-tight">Chave de API Necessária</h2>
+              <p className="text-sm text-rose-700 mt-2 max-w-sm">Para ativar os recursos de IA, você precisa selecionar uma chave do Google AI Studio ou configurar a variável API_KEY nas configurações do projeto.</p>
+              <p className="text-[10px] text-rose-400 mt-2 font-bold uppercase">Nota: Projetos na Vercel exigem redeploy após salvar variáveis.</p>
+            </div>
+            <button 
+              onClick={handleOpenKeySelector}
+              className="px-6 h-12 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-rose-700 active:scale-95 transition-all flex items-center gap-2 shadow-lg"
+            >
+              <Key size={18} /> Ativar Agora
+            </button>
+          </div>
+        )}
+
         {/* Navigation Selector */}
         <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar scroll-smooth snap-x pb-2 -mx-1 px-1">
           {navItems.map((item) => {

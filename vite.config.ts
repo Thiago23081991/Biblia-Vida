@@ -6,6 +6,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/',
-  // Deixamos o ambiente gerenciar process.env para garantir que 
-  // chaves selecionadas via dialog sejam lidas corretamente.
+  define: {
+    // Usamos um fallback para string vazia para evitar erro de 'process is not defined'
+    // mas garantimos que a propriedade API_KEY seja mapeada.
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
+  }
 })

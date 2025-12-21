@@ -38,13 +38,14 @@ const handleGeminiError = (error: any): string => {
   console.error("Gemini Error:", error);
   const msg = error?.message?.toLowerCase() || "";
   
-  if (msg.includes("401") || msg.includes("403") || msg.includes("api_key_invalid") || msg.includes("not found")) {
-    return "🔑 Erro: Chave de API inválida ou sem permissão. Por favor, clique no botão 'Selecionar Chave' no cabeçalho ou no ícone de chave no canto superior para ativar sua chave no Google AI Studio.";
+  // Se a entidade não foi encontrada ou a chave é inválida, precisamos resetar o estado da chave no App
+  if (msg.includes("401") || msg.includes("403") || msg.includes("api_key_invalid") || msg.includes("requested entity was not found")) {
+    return "KEY_ERROR: Chave de API inválida, sem permissão ou expidada. Por favor, selecione uma chave válida do Google AI Studio.";
   }
   if (msg.includes("429") || msg.includes("quota")) {
-    return "⏳ Limite de uso atingido. Aguarde um minuto e tente novamente.";
+    return "⏳ Limite de uso atingido (Quota). Aguarde um minuto e tente novamente.";
   }
-  return "😔 Ocorreu um problema na conexão. Verifique se sua chave de API está ativa no Google AI Studio e tente novamente.";
+  return "😔 Erro de conexão. Verifique sua internet ou se o modelo está disponível em sua região.";
 };
 
 const normalizeReference = (ref: string): string => {
@@ -57,7 +58,7 @@ const normalizeReference = (ref: string): string => {
 
 const getAiInstance = () => {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) {
+  if (!apiKey || apiKey === "undefined" || apiKey === "") {
     throw new Error("api_key_invalid");
   }
   return new GoogleGenAI({ apiKey });
@@ -69,11 +70,10 @@ export const generateExplanation = async (input: string, audience: AudienceType)
     const normalizedInput = normalizeReference(input);
     const audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
-    // Fix: Using contents as a single Content object (not an array) as per SDK guidelines
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { systemInstruction: SYSTEM_INSTRUCTION, temperature: 0.7 },
-      contents: { parts: [{ text: `Tema/Passagem: "${normalizedInput}". Público: ${audiencePrompt}` }] },
+      contents: [{ parts: [{ text: `Tema/Passagem: "${normalizedInput}". Público: ${audiencePrompt}` }] }],
     });
 
     return response.text || "Sem resposta.";
@@ -85,11 +85,10 @@ export const generateExplanation = async (input: string, audience: AudienceType)
 export const getBibleText = async (reference: string): Promise<string> => {
   try {
     const ai = getAiInstance();
-    // Fix: Using contents as a single Content object (not an array) as per SDK guidelines
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { systemInstruction: READING_INSTRUCTION, temperature: 0.1 },
-      contents: { parts: [{ text: `Texto NVI para: "${reference}"` }] },
+      contents: [{ parts: [{ text: `Texto NVI para: "${reference}"` }] }],
     });
     return response.text || "Referência não encontrada.";
   } catch (error) {
@@ -100,11 +99,10 @@ export const getBibleText = async (reference: string): Promise<string> => {
 export const searchBibleVerses = async (keyword: string): Promise<string> => {
   try {
     const ai = getAiInstance();
-    // Fix: Using contents as a single Content object (not an array) as per SDK guidelines
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { systemInstruction: "Liste os 5 versículos NVI mais relevantes.", temperature: 0.3 },
-      contents: { parts: [{ text: `Busca: "${keyword}"` }] },
+      contents: [{ parts: [{ text: `Busca: "${keyword}"` }] }],
     });
     return response.text || "Nenhum resultado.";
   } catch (error) {
@@ -116,11 +114,10 @@ export const generateDevotional = async (reference: string, audience: AudienceTy
   try {
     const ai = getAiInstance();
     const audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
-    // Fix: Using contents as a single Content object (not an array) as per SDK guidelines
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { systemInstruction: DEVOTIONAL_INSTRUCTION, temperature: 0.8 },
-      contents: { parts: [{ text: `Devocional: "${reference}". Público: ${audiencePrompt}` }] },
+      contents: [{ parts: [{ text: `Devocional: "${reference}". Público: ${audiencePrompt}` }] }],
     });
     return response.text || "Erro ao gerar.";
   } catch (error) {
