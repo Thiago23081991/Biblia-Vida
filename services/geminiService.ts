@@ -75,18 +75,28 @@ const normalizeReference = (ref: string): string => {
 };
 
 const handleGeminiError = (error: any): string => {
-  console.error("Gemini API Error:", error);
+  console.error("Erro Técnico Gemini:", error);
   const errorMessage = error.toString().toLowerCase();
-  if (errorMessage.includes("429")) return "⏳ Limite atingido. Aguarde um instante.";
-  if (errorMessage.includes("safety")) return "🛡️ Conteúdo bloqueado por segurança.";
-  return "😔 Erro na conexão com a IA.";
+  
+  if (!process.env.API_KEY) return "🔑 Chave de API não configurada. Verifique as variáveis de ambiente.";
+  if (errorMessage.includes("429")) return "⏳ Limite de requisições atingido. Aguarde um minuto.";
+  if (errorMessage.includes("401") || errorMessage.includes("403")) return "🚫 Chave de API inválida ou sem permissão.";
+  if (errorMessage.includes("safety")) return "🛡️ Conteúdo bloqueado pelos filtros de segurança da IA.";
+  
+  return "😔 Erro na conexão com a IA. Verifique sua internet ou tente novamente.";
+};
+
+// Inicializa a IA apenas se a chave existir
+const getAI = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) throw new Error("API_KEY_MISSING");
+  return new GoogleGenAI({ apiKey });
 };
 
 export const generateExplanation = async (input: string, audience: AudienceType): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = getAI();
     const normalizedInput = normalizeReference(input);
-    
     let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
     const response = await ai.models.generateContent({
@@ -95,7 +105,7 @@ export const generateExplanation = async (input: string, audience: AudienceType)
       contents: `Tema/Passagem: "${normalizedInput}". Público: ${audiencePrompt}`,
     });
 
-    return response.text || "Sem resposta.";
+    return response.text || "A IA não retornou conteúdo.";
   } catch (error) {
     return handleGeminiError(error);
   }
@@ -103,7 +113,7 @@ export const generateExplanation = async (input: string, audience: AudienceType)
 
 export const getBibleText = async (reference: string): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = getAI();
     const normalizedRef = normalizeReference(reference);
 
     const response = await ai.models.generateContent({
@@ -112,7 +122,7 @@ export const getBibleText = async (reference: string): Promise<string> => {
       contents: `Texto para: "${normalizedRef}"`,
     });
 
-    return response.text || "Erro ao carregar texto.";
+    return response.text || "Erro ao carregar texto bíblico.";
   } catch (error) {
     return handleGeminiError(error);
   }
@@ -120,13 +130,13 @@ export const getBibleText = async (reference: string): Promise<string> => {
 
 export const searchBibleVerses = async (keyword: string): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       config: { systemInstruction: SEARCH_INSTRUCTION },
       contents: `Busca: "${keyword}"`,
     });
-    return response.text || "Nada encontrado.";
+    return response.text || "Nenhum resultado encontrado.";
   } catch (error) {
     return handleGeminiError(error);
   }
@@ -134,7 +144,7 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
 
 export const generateDevotional = async (reference: string, audience: AudienceType): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = getAI();
     const normalizedRef = normalizeReference(reference);
     let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
