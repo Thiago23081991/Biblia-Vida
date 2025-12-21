@@ -133,7 +133,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Função de leitura AGORA É INDEPENDENTE DA API KEY
   const handleReadBible = async (forcedInput?: string) => {
     let inputToUse = forcedInput || (inputMode === 'bible' ? pickerText : inputText);
     if (!inputToUse.trim()) return;
@@ -145,7 +144,6 @@ const App: React.FC = () => {
     setCurrentReference(inputToUse);
     
     try {
-      // Usamos a API Pública que não gasta cota do Gemini
       const bibleText = await fetchPublicBibleText(inputToUse);
       setResult(bibleText);
       
@@ -202,16 +200,27 @@ const App: React.FC = () => {
 
   const handleSearch = async () => {
     if (quotaWaitTime > 0 || !searchText.trim()) return;
+    if (!hasApiKey) {
+      setResult("⚠️ A busca inteligente requer uma chave de API ativa.");
+      return;
+    }
+
     setLoading(true);
     setResult(null);
-    setIsReadingMode(true);
+    setIsReadingMode(false);
     setIsDevotionalResult(false);
+    setCurrentReference(searchText);
+    
     try {
       const rawResponse = await searchBibleVerses(searchText);
       const finalResponse = processResponse(rawResponse);
       setResult(finalResponse);
+      
+      setTimeout(() => {
+        document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
     } catch (error) {
-      setResult("Ocorreu um erro ao realizar a busca.");
+      setResult("Ocorreu um erro ao realizar a busca por IA.");
     } finally {
       setLoading(false);
     }
@@ -279,7 +288,6 @@ const App: React.FC = () => {
 
       <main className="w-full max-w-4xl mx-auto px-4 py-4 md:py-8 flex-grow">
         
-        {/* Aviso de IA Desativada (O botão de ler continuará funcionando) */}
         {!hasApiKey && (
           <div className="mb-8 bg-blue-50 border-2 border-blue-100 rounded-3xl p-6 flex flex-col items-center text-center gap-4 animate-fade-in shadow-lg">
             <div className="w-16 h-16 bg-white text-blue-600 rounded-full flex items-center justify-center shadow-sm">
@@ -287,7 +295,7 @@ const App: React.FC = () => {
             </div>
             <div>
               <h2 className="text-xl font-black text-blue-900 leading-tight">Modo de Leitura Ativo</h2>
-              <p className="text-sm text-blue-700 mt-2 max-w-sm">Você pode ler a Bíblia livremente. Para usar as explicações da IA, configure sua chave de API.</p>
+              <p className="text-sm text-blue-700 mt-2 max-w-sm">A leitura de capítulos é ilimitada e gratuita! Para usar buscas e explicações por IA, ative sua chave.</p>
             </div>
             <button 
               onClick={handleOpenKeySelector}
@@ -298,7 +306,6 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Aviso de Limite de Quota para IA */}
         {quotaWaitTime > 0 && (
           <div className="mb-8 bg-amber-50 border-2 border-amber-100 rounded-3xl p-6 flex items-center gap-4 animate-fade-in shadow-lg">
             <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center flex-shrink-0 animate-pulse">
@@ -306,7 +313,7 @@ const App: React.FC = () => {
             </div>
             <div className="flex-grow">
               <h3 className="font-black text-amber-900 text-sm">IA em Repouso</h3>
-              <p className="text-xs text-amber-700">O Google limitou o uso da IA. **Você ainda pode ler a Bíblia normalmente abaixo.**</p>
+              <p className="text-xs text-amber-700">Limite atingido. **A leitura na aba Bíblia e Planos continua liberada.**</p>
             </div>
             <div className="bg-amber-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-black text-sm">
               {quotaWaitTime}s
@@ -358,16 +365,24 @@ const App: React.FC = () => {
               {inputMode === 'bible' && <BibleSelector onSelectionChange={setPickerText} />}
               {inputMode === 'study' && <StudySelector onSelectTopic={setStudyTopic} />}
               {inputMode === 'search' && (
-                <div className="relative group">
-                  <input
-                    type="text"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="Busca por palavra..."
-                    className="w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl md:rounded-3xl border border-slate-300 focus:border-brand-500 outline-none text-base md:text-lg bg-slate-50/30"
-                  />
-                  <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <div className="relative flex flex-col gap-3">
+                   <p className="text-[10px] font-black text-brand-600 uppercase tracking-widest ml-1 mb-1 flex items-center gap-1.5">
+                    <Sparkles size={12} /> Busca Inteligente via IA
+                  </p>
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      placeholder="Busca por palavra ou tema..."
+                      className="w-full pl-12 pr-4 h-14 md:h-16 rounded-2xl md:rounded-3xl border border-slate-300 focus:border-brand-500 outline-none text-base md:text-lg bg-slate-50/30"
+                    />
+                    <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  </div>
+                  <p className="text-[10px] text-slate-400 text-center px-4 leading-relaxed">
+                    A IA encontrará os versículos mais relevantes para o seu tema.
+                  </p>
                 </div>
               )}
             </div>
@@ -401,6 +416,17 @@ const App: React.FC = () => {
                 )}
               </div>
             )}
+
+            {inputMode === 'search' && (
+              <button
+                onClick={handleSearch}
+                disabled={loading || quotaWaitTime > 0 || !searchText.trim() || !hasApiKey}
+                className="w-full mt-4 flex items-center justify-center gap-3 h-14 rounded-2xl font-bold text-white bg-brand-600 hover:bg-brand-700 active:scale-95 transition-all shadow-md disabled:bg-slate-300 disabled:shadow-none"
+              >
+                {loading ? <Loader2 size={20} className="animate-spin" /> : <Search size={20} />}
+                <span>Buscar com IA</span>
+              </button>
+            )}
           </div>
         </section>
 
@@ -422,7 +448,7 @@ const App: React.FC = () => {
       <footer className="w-full py-10 px-4 text-center text-slate-400 text-[10px] border-t border-slate-200 bg-white">
         <p className="font-bold text-slate-600 uppercase tracking-widest mb-2">Bíblia Viva & Adaptada</p>
         <p>Base Teológica NVI - Nova Versão Internacional</p>
-        <p className="mt-4 opacity-50 max-w-sm mx-auto">Leitura pública via API gratuita. Explicações via Gemini AI.</p>
+        <p className="mt-4 opacity-50 max-w-sm mx-auto">Leitura pública gratuita. Explicações e buscas via Gemini IA.</p>
       </footer>
 
       {showHistory && (

@@ -6,10 +6,7 @@
 
 export const fetchPublicBibleText = async (reference: string): Promise<string> => {
   try {
-    // Tentamos usar a bible-api.com (Versão Almeida ou similar disponível publicamente)
-    // Nota: NVI é protegida por direitos autorais, então APIs públicas usam versões em domínio público.
-    // Para manter a "Bíblia Viva", usaremos uma busca que retorne português.
-    
+    // A bible-api.com é compatível com chamadas de navegador (CORS-friendly)
     const response = await fetch(`https://bible-api.com/${encodeURIComponent(reference)}?translation=almeida`);
     
     if (!response.ok) throw new Error("Falha ao buscar na API pública");
