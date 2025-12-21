@@ -5,30 +5,29 @@ Aplicação web desenvolvida com React e Google Gemini AI para adaptar passagens
 
 ## 🚀 Como configurar a Chave de IA (Obrigatório)
 
-O aplicativo precisa de uma chave da Google para funcionar.
+Se você receber erros de conexão ou "Chave não encontrada", siga este guia passo a passo.
 
 ### 1. Criar sua Chave
 1. Acesse: [Google AI Studio](https://aistudio.google.com/app/apikey).
 2. Clique em "Create API Key".
 
-### 2. Configurar na Vercel (Para o site online)
-Se o seu site já está na Vercel, siga estes passos:
-1. Abra o painel do seu projeto na **Vercel**.
-2. Vá na aba **Settings** (Configurações).
-3. Clique em **Environment Variables** (Variáveis de Ambiente) na lateral esquerda.
-4. Adicione uma nova variável:
-   - **Key:** `VITE_API_KEY`
-   - **Value:** (Cole aqui a chave que você criou no Google)
-5. Clique em **Save**.
-6. **IMPORTANTE:** Vá na aba **Deployments**, clique nos três pontinhos do último deploy e selecione **Redeploy** para aplicar a nova chave.
+### 2. Configurar na Vercel (Passos Finais)
+Vite injeta variáveis no **momento do build**. Se você apenas salvou a variável nas configurações, o site antigo ainda está sem a chave.
 
-### 3. Rodando Localmente (No computador)
-1. Crie um arquivo `.env` na pasta raiz.
+1. Vá no painel da **Vercel** -> **Settings** -> **Environment Variables**.
+2. Adicione `VITE_API_KEY` com a sua chave.
+3. **🚨 PASSO OBRIGATÓRIO:** Vá na aba **Deployments**.
+4. Clique nos três pontinhos (`...`) à direita do seu último deploy (o que está no topo da lista).
+5. Selecione **Redeploy**.
+6. Aguarde o novo build terminar. Agora o código terá a chave injetada.
+
+### 3. Rodando Localmente
+1. Crie um arquivo `.env` na raiz.
 2. Adicione: `VITE_API_KEY=sua_chave_aqui`
 3. Execute `npm install` e `npm run dev`.
 
 ## 🛠 Tecnologias
 - React 19 / Vite
-- Google Gemini 2.0 Flash
+- Google Gemini 3 Flash
 - Tailwind CSS
 - Lucide Icons

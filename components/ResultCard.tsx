@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { AudienceType } from '../types';
-import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone } from 'lucide-react';
+import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X } from 'lucide-react';
 
 interface ResultCardProps {
   content: string;
@@ -12,21 +13,18 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional
   const [copied, setCopied] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
 
-  // Formata o texto para ser amigável em redes sociais (com emojis e espaçamento)
   const getSocialFormattedText = () => {
     let text = content
       .replace(/\*\*📖 Passagem:\*\*/g, '📖 *Passagem:*')
       .replace(/\*\*🎯 Público:\*\*/g, '🎯 *Público:*')
-      .replace(/\*\*💬 Explicação:\*\*/g, '💬 *Reflexão:*')
-      .replace(/\*\*💡 Aplicação:\*\*/g, '💡 *Ação:*')
+      .replace(/\*\*💬 Explicação:\*\*/g, '💬 *Explicação:*')
+      .replace(/\*\*💡 Aplicação:\*\*/g, '💡 *Aplicação:*')
       .replace(/\*\*🌟 Versículo Chave:\*\*/g, '🌟 *Versículo:*')
-      .replace(/\*\*💭 Reflexão:\*\*/g, '💭 *Meditação:*')
+      .replace(/\*\*💭 Reflexão:\*\*/g, '💭 *Reflexão:*')
       .replace(/\*\*🙏 Oração:\*\*/g, '🙏 *Oração:*')
       .replace(/\*\*🚀 Desafio do Dia:\*\*/g, '🚀 *Desafio:*')
-      .replace(/\*\*/g, '*'); // Converte negrito MD para negrito WhatsApp
-
-    const footer = `\n\n✨ *Gerado pelo App Bíblia Viva* ✨\n🙏 Edificando vidas através da IA.`;
-    return text + footer;
+      .replace(/\*\*/g, '*');
+    return text + `\n\n✨ *Gerado pelo App Bíblia Viva* ✨\n🙏 Edificando vidas com IA.`;
   };
 
   const handleCopy = (social = false) => {
@@ -40,173 +38,97 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional
   const handleShare = (platform: 'whatsapp' | 'twitter' | 'email') => {
     const text = getSocialFormattedText();
     const encodedText = encodeURIComponent(text);
-    
     let url = '';
     switch (platform) {
-      case 'whatsapp':
-        url = `https://wa.me/?text=${encodedText}`;
-        break;
-      case 'twitter':
-        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text.substring(0, 240) + '...')}`;
-        break;
-      case 'email':
-        url = `mailto:?subject=Uma mensagem bíblica para você&body=${encodedText}`;
-        break;
+      case 'whatsapp': url = `https://wa.me/?text=${encodedText}`; break;
+      case 'twitter': url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text.substring(0, 240))}`; break;
+      case 'email': url = `mailto:?subject=Mensagem Bíblica&body=${encodedText}`; break;
     }
-
     if (url) {
       window.open(url, '_blank');
       setShowShareMenu(false);
     }
   };
 
-  const getStyles = () => {
-    if (isDevotional) {
-      return {
-        container: "bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-xl shadow-indigo-100/50 font-serif text-base text-slate-800 leading-relaxed",
-        heading: "text-indigo-700 font-bold border-b border-indigo-100 pb-1 mb-2 mt-4 flex items-center gap-2",
-        strong: "text-indigo-900",
-        buttonHover: "hover:bg-indigo-100 text-indigo-600",
-      };
-    }
-    switch (audience) {
-      case AudienceType.CHILD:
-        return {
-          container: "bg-yellow-50 border-yellow-200 font-hand text-lg text-slate-800",
-          heading: "text-yellow-700",
-          strong: "text-yellow-900",
-          buttonHover: "hover:bg-yellow-200 text-yellow-800",
-        };
-      case AudienceType.TEEN:
-        return {
-          container: "bg-purple-50 border-purple-200 font-sans text-base text-slate-800",
-          heading: "text-purple-700 font-bold tracking-tight",
-          strong: "text-purple-900",
-          buttonHover: "hover:bg-purple-200 text-purple-900",
-        };
-      case AudienceType.ADULT:
-        return {
-          container: "bg-white border-slate-200 shadow-sm font-serif text-base text-slate-800 leading-relaxed",
-          heading: "text-blue-900 font-semibold border-b border-blue-100 pb-1 mb-2 mt-4",
-          strong: "text-slate-900",
-          buttonHover: "hover:bg-slate-100 text-slate-600",
-        };
-      default:
-        return { container: "bg-white", heading: "font-bold mt-4", strong: "font-bold", buttonHover: "hover:bg-slate-100" };
-    }
+  const styles = isDevotional ? {
+    container: "bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-xl shadow-indigo-100/30",
+    heading: "text-indigo-800 font-black border-b border-indigo-100/50 pb-2 mb-4 mt-6 uppercase tracking-tight text-sm",
+    strong: "text-indigo-900 font-black",
+    text: "text-slate-800 font-serif leading-relaxed"
+  } : audience === AudienceType.CHILD ? {
+    container: "bg-yellow-50 border-yellow-200 shadow-lg shadow-yellow-100/50",
+    heading: "text-yellow-700 font-bold mb-4 mt-6 font-hand text-xl",
+    strong: "text-yellow-900 font-bold",
+    text: "text-slate-800 font-hand text-xl leading-snug"
+  } : audience === AudienceType.TEEN ? {
+    container: "bg-purple-50 border-purple-200 shadow-lg shadow-purple-100/50",
+    heading: "text-purple-700 font-black mb-4 mt-6 uppercase tracking-tighter italic",
+    strong: "text-purple-900 font-bold",
+    text: "text-slate-800 font-sans text-base leading-relaxed"
+  } : {
+    container: "bg-white border-slate-200 shadow-xl shadow-slate-200/50",
+    heading: "text-blue-900 font-bold border-b border-slate-100 pb-2 mb-4 mt-6 text-base",
+    strong: "text-slate-900 font-bold",
+    text: "text-slate-800 font-serif text-base leading-relaxed"
   };
-
-  const styles = getStyles();
 
   const renderContent = (text: string) => {
     if (!text) return null;
     return text.split('\n').map((line, index) => {
-      if (!line.trim()) return <div key={index} className="h-2"></div>;
-      if (line.startsWith('## ') || line.startsWith('**📖') || line.startsWith('**🎯') || line.startsWith('**💬') || line.startsWith('**💡') || line.startsWith('**🌟') || line.startsWith('**💭') || line.startsWith('**🙏') || line.startsWith('**🚀')) {
-        const cleanLine = line.replace(/##\s?|\*\*/g, '');
-        return <h3 key={index} className={`text-lg ${styles.heading}`}>{cleanLine}</h3>;
+      if (!line.trim()) return <div key={index} className="h-4"></div>;
+      if (line.startsWith('**') && (line.includes('Passagem') || line.includes('Público') || line.includes('Explicação') || line.includes('Aplicação') || line.includes('Versículo') || line.includes('Reflexão') || line.includes('Oração') || line.includes('Desafio'))) {
+        return <h3 key={index} className={styles.heading}>{line.replace(/\*\*/g, '')}</h3>;
       }
       const parts = line.split(/(\*\*.*?\*\*)/g);
       return (
-        <p key={index} className="mb-2">
-          {parts.map((part, partIndex) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
-              return <strong key={partIndex} className={`font-bold ${styles.strong}`}>{part.slice(2, -2)}</strong>;
-            }
-            return part;
-          })}
+        <p key={index} className={`mb-3 ${styles.text}`}>
+          {parts.map((part, pIdx) => part.startsWith('**') ? <strong key={pIdx} className={styles.strong}>{part.slice(2, -2)}</strong> : part)}
         </p>
       );
     });
   };
 
   return (
-    <div className={`w-full rounded-3xl border p-6 md:p-10 mt-6 relative animate-fade-in ${styles.container}`}>
-      {/* Visual Badge for screenshots */}
-      <div className="absolute -top-3 left-8 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1 uppercase tracking-tighter">
-        <Smartphone size={10} /> Compartilhável
-      </div>
-      
-      {/* Action Buttons */}
-      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-        <button 
-          onClick={() => handleCopy()}
-          className={`p-2 rounded-full transition-colors ${styles.buttonHover}`}
-          title="Copiar texto simples"
-        >
-          {copied ? <Check size={20} className="text-green-600" /> : <Copy size={20} className="opacity-60" />}
+    <div className={`w-full rounded-[2.5rem] border p-6 md:p-10 relative animate-fade-in ${styles.container}`}>
+      <div className="absolute top-4 right-4 flex gap-2 z-10">
+        <button onClick={() => handleCopy()} className="p-3 bg-white/80 backdrop-blur rounded-full shadow-sm hover:bg-white active:scale-90 transition-all border border-slate-100">
+          {copied ? <Check size={20} className="text-green-600" /> : <Copy size={20} className="text-slate-400" />}
         </button>
-
-        <div className="relative">
-          <button 
-            onClick={() => setShowShareMenu(!showShareMenu)}
-            className={`p-2 rounded-full transition-colors ${showShareMenu ? 'bg-black/5' : ''} ${styles.buttonHover}`}
-            title="Compartilhar"
-          >
-            <Share2 size={20} className="opacity-60" />
-          </button>
-
-          {showShareMenu && (
-            <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-fade-in z-20">
-              <div className="p-2">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 py-2">Compartilhar Direto</p>
-                <button 
-                  onClick={() => handleShare('whatsapp')}
-                  className="flex items-center gap-3 w-full p-3 text-sm text-slate-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-colors text-left"
-                >
-                  <MessageCircle size={18} className="text-green-500" />
-                  <span className="font-semibold">WhatsApp</span>
-                </button>
-                <button 
-                  onClick={() => handleShare('twitter')}
-                  className="flex items-center gap-3 w-full p-3 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-700 rounded-xl transition-colors text-left"
-                >
-                  <Twitter size={18} className="text-sky-400" />
-                  <span className="font-semibold">Twitter / X</span>
-                </button>
-                
-                <div className="h-px bg-slate-100 my-1"></div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 py-2">Layout Otimizado</p>
-                
-                <button 
-                  onClick={() => handleCopy(true)}
-                  className="flex items-center gap-3 w-full p-3 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl transition-colors text-left"
-                >
-                  <Smartphone size={18} className="text-indigo-500" />
-                  <div>
-                    <span className="font-semibold block">Copiar p/ Status/Stories</span>
-                    <span className="text-[10px] opacity-60">Formatação com Emojis ✨</span>
-                  </div>
-                </button>
-
-                <button 
-                  onClick={() => handleShare('email')}
-                  className="flex items-center gap-3 w-full p-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors text-left"
-                >
-                  <Mail size={18} className="text-slate-400" />
-                  <span className="font-semibold">E-mail</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <button onClick={() => setShowShareMenu(true)} className="p-3 bg-brand-600 rounded-full shadow-lg hover:bg-brand-700 active:scale-90 transition-all text-white">
+          <Share2 size={20} />
+        </button>
       </div>
 
-      <div className="prose prose-slate max-w-none pt-2">
+      <div className="prose prose-slate max-w-none">
         {renderContent(content)}
       </div>
 
-      {/* Footer card brand */}
-      <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between opacity-40">
-        <div className="flex items-center gap-1.5">
-          <Smartphone size={14} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Bíblia Viva & Adaptada</span>
-        </div>
-        <span className="text-[10px] font-medium italic">NVI - Nova Versão Internacional</span>
-      </div>
-
+      {/* Share Modal / Bottom Sheet */}
       {showShareMenu && (
-        <div className="fixed inset-0 z-0 cursor-default" onClick={() => setShowShareMenu(false)}></div>
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setShowShareMenu(false)}></div>
+          <div className="relative w-full max-w-md bg-white rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl animate-fade-in transform translate-y-0 transition-transform">
+            <div className="flex justify-between items-center mb-6">
+              <h4 className="font-black text-slate-900 uppercase tracking-tight">Compartilhar</h4>
+              <button onClick={() => setShowShareMenu(false)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-3">
+              <button onClick={() => handleShare('whatsapp')} className="flex items-center gap-4 w-full p-4 bg-green-50 text-green-700 rounded-2xl font-bold hover:bg-green-100 transition-colors">
+                <MessageCircle size={24} /> WhatsApp
+              </button>
+              <button onClick={() => handleShare('twitter')} className="flex items-center gap-4 w-full p-4 bg-sky-50 text-sky-700 rounded-2xl font-bold hover:bg-sky-100 transition-colors">
+                <Twitter size={24} /> Twitter / X
+              </button>
+              <button onClick={() => handleCopy(true)} className="flex items-center gap-4 w-full p-4 bg-brand-50 text-brand-700 rounded-2xl font-bold hover:bg-brand-100 transition-colors">
+                <Smartphone size={24} /> Copiar para Status/Stories ✨
+              </button>
+              <button onClick={() => handleShare('email')} className="flex items-center gap-4 w-full p-4 bg-slate-50 text-slate-700 rounded-2xl font-bold hover:bg-slate-100 transition-colors">
+                <Mail size={24} /> E-mail
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

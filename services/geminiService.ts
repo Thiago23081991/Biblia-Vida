@@ -37,13 +37,13 @@ FORMATO DE SAÍDA OBRIGATÓRIO (Markdown):
 
 const READING_INSTRUCTION = `
 Você é uma Bíblia digital focada na Nova Versão Internacional (NVI).
-Sua ÚNICA função é fornecer o texto bíblico exato da referência solicitada.
-Identifique variações como "1º Samuel", "Segunda Reis", "3 de João" e mapeie para o nome padrão.
-NÃO adicione comentários. Apenas o texto.
+Sua ÚNICA função é fornecer o texto bíblico exato da referência solicitada pelo usuário.
+Não interprete, não resuma e não adicione comentários pessoais.
+Apenas retorne o texto dos versículos conforme traduzidos na NVI.
 
-FORMATO:
-**📖 [Referência Completa] (NVI)**
-[Texto dos versículos]
+FORMATO DE RESPOSTA:
+**📖 [Livro] [Capítulo]:[Versículos] (NVI)**
+[Texto integral dos versículos]
 `;
 
 const SEARCH_INSTRUCTION = `
@@ -83,53 +83,45 @@ const handleGeminiError = (error: any): string => {
 
   const errorMessage = error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || "";
   
-  // Verificação de Chave Ausente ou mal configurada
-  if (!process.env.API_KEY || process.env.API_KEY === 'undefined' || process.env.API_KEY === '') {
-    return "🔑 Chave de API não configurada corretamente. Se você for o administrador, verifique a variável de ambiente API_KEY.";
+  const currentKey = process.env.API_KEY;
+  if (!currentKey || currentKey === 'undefined' || currentKey === '') {
+    return "🔑 Erro Crítico: Chave de API não encontrada no sistema. Se você está na Vercel, adicione VITE_API_KEY e faça um REDEPLOY na aba Deployments.";
   }
 
-  // Erros de Autenticação (401, 403)
   if (errorMessage.includes("api_key_invalid") || errorMessage.includes("401") || errorMessage.includes("403") || errorMessage.includes("invalid api key")) {
-    return "🚫 Chave de API inválida ou sem permissão. Verifique as configurações de ambiente no servidor.";
+    return "🚫 Chave de API inválida ou sem permissão. Verifique no Google AI Studio se a chave está ativa.";
   }
 
-  // Erros de Cota / Limite de Requisições (429)
   if (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("too many requests") || errorMessage.includes("limit exceeded")) {
-    return "⏳ O limite de mensagens foi atingido. Por favor, aguarde um minutinho antes de tentar novamente.";
+    return "⏳ O limite de mensagens gratuitas foi atingido. Aguarde cerca de 1 minuto.";
   }
 
-  // Erros de Segurança/Filtro (O Gemini bloqueia certas palavras/contextos)
   if (errorMessage.includes("safety") || errorMessage.includes("finish_reason_safety") || errorMessage.includes("blocked")) {
-    return "🛡️ O conteúdo foi filtrado pelos critérios de segurança da IA por conter termos sensíveis.";
+    return "🛡️ O conteúdo foi filtrado pelos critérios de segurança da IA. Tente reformular a referência ou o tema.";
   }
 
-  // Erros de Rede / Conexão com o servidor da Google
-  if (errorMessage.includes("fetch") || errorMessage.includes("network") || errorMessage.includes("failed to fetch") || errorMessage.includes("connection")) {
-    return "📡 Falha na comunicação com os servidores da IA. Pode ser uma instabilidade momentânea na rede.";
-  }
-
-  // Erros de Modelo não encontrado (404)
-  if (errorMessage.includes("not found") || errorMessage.includes("404") || errorMessage.includes("model")) {
-    return "🔍 Tivemos um problema ao localizar o modelo de IA selecionado. Tente novamente em instantes.";
+  if (errorMessage.includes("fetch") || errorMessage.includes("network") || errorMessage.includes("failed to fetch")) {
+    return "📡 Falha na rede ao tentar conectar com os servidores da Google. Verifique sua conexão.";
   }
   
-  return "😔 Algo deu errado na conexão com a IA. Tente recarregar a página ou tente novamente mais tarde.";
+  return `😔 Erro na conexão: ${error.message || "Tente novamente mais tarde."}`;
 };
 
-// Fix: Updated model name to gemini-3-flash-preview as per standard guidelines for basic text tasks
 const MODEL_NAME = 'gemini-3-flash-preview';
 
 export const generateExplanation = async (input: string, audience: AudienceType): Promise<string> => {
   try {
-    // Fix: Using the mandatory initialization format for GoogleGenAI
-    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const normalizedInput = normalizeReference(input);
     let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      config: { systemInstruction: SYSTEM_INSTRUCTION },
-      contents: `Tema/Passagem: "${normalizedInput}". Público: ${audiencePrompt}`,
+      config: { 
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.7 
+      },
+      contents: [{ parts: [{ text: `Tema/Passagem: "${normalizedInput}". Público: ${audiencePrompt}` }] }],
     });
 
     return response.text || "Sem resposta da IA.";
@@ -140,17 +132,19 @@ export const generateExplanation = async (input: string, audience: AudienceType)
 
 export const getBibleText = async (reference: string): Promise<string> => {
   try {
-    // Fix: Using the mandatory initialization format for GoogleGenAI
-    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const normalizedRef = normalizeReference(reference);
 
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      config: { systemInstruction: READING_INSTRUCTION },
-      contents: `Texto para: "${normalizedRef}"`,
+      config: { 
+        systemInstruction: READING_INSTRUCTION,
+        temperature: 0.1 // Temperatura baixa para garantir fidelidade textual
+      },
+      contents: [{ parts: [{ text: `Forneça o texto bíblico NVI para: "${normalizedRef}"` }] }],
     });
 
-    return response.text || "Erro ao carregar texto bíblico.";
+    return response.text || "Não foi possível carregar o texto bíblico para esta referência. Verifique se a passagem está correta.";
   } catch (error) {
     return handleGeminiError(error);
   }
@@ -158,14 +152,16 @@ export const getBibleText = async (reference: string): Promise<string> => {
 
 export const searchBibleVerses = async (keyword: string): Promise<string> => {
   try {
-    // Fix: Using the mandatory initialization format for GoogleGenAI
-    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      config: { systemInstruction: SEARCH_INSTRUCTION },
-      contents: `Busca: "${keyword}"`,
+      config: { 
+        systemInstruction: SEARCH_INSTRUCTION,
+        temperature: 0.3 
+      },
+      contents: [{ parts: [{ text: `Busca por: "${keyword}"` }] }],
     });
-    return response.text || "Nada encontrado.";
+    return response.text || "Nenhum versículo encontrado para este termo.";
   } catch (error) {
     return handleGeminiError(error);
   }
@@ -173,18 +169,20 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
 
 export const generateDevotional = async (reference: string, audience: AudienceType): Promise<string> => {
   try {
-    // Fix: Using the mandatory initialization format for GoogleGenAI
-    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const normalizedRef = normalizeReference(reference);
     let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      config: { systemInstruction: DEVOTIONAL_INSTRUCTION },
-      contents: `Passagem para devocional: "${normalizedRef}". Público-alvo: ${audiencePrompt}`,
+      config: { 
+        systemInstruction: DEVOTIONAL_INSTRUCTION,
+        temperature: 0.8 
+      },
+      contents: [{ parts: [{ text: `Passagem para devocional: "${normalizedRef}". Público-alvo: ${audiencePrompt}` }] }],
     });
 
-    return response.text || "Erro ao gerar devocional.";
+    return response.text || "Erro ao gerar devocional. Tente outra passagem.";
   } catch (error) {
     return handleGeminiError(error);
   }
