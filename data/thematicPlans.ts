@@ -10,13 +10,132 @@ export interface ThematicPlan {
   title: string;
   description: string;
   duration: number; // em dias
-  category: 'Vida Cristã' | 'Emoções' | 'Doutrina' | 'Personagens';
+  category: 'Vida Cristã' | 'Emoções' | 'Doutrina' | 'Personagens' | 'Jovens';
   icon: string;
   color: string;
   days: StudyDay[];
 }
 
 export const thematicPlans: ThematicPlan[] = [
+  // --- NOVOS PLANOS PARA JOVENS (SESSÃO EXPANDIDA) ---
+  {
+    id: 'logoff-inveja',
+    title: 'Logoff na Inveja',
+    description: 'Vencendo o jogo da comparação no Instagram e TikTok. Descubra sua beleza real.',
+    duration: 5,
+    category: 'Jovens',
+    icon: '📵',
+    color: 'from-fuchsia-500 to-purple-700',
+    days: [
+      { day: 1, reference: 'Salmos 139:14', focus: 'Você não é um Filtro' },
+      { day: 2, reference: 'Gálatas 1:10', focus: 'Aprovação: Quem deu o Like?' },
+      { day: 3, reference: '1 Timóteo 4:12', focus: 'Sua Juventude tem Valor' },
+      { day: 4, reference: 'Êxodo 20:17', focus: 'O Perigo do Scroll Infinito' },
+      { day: 5, reference: 'Mateus 6:33', focus: 'Foco no que é Real' },
+    ]
+  },
+  {
+    id: 'circulo-confianca',
+    title: 'Círculo de Confiança',
+    description: 'Como montar seu "Squad de Fé" e lidar com amizades tóxicas ou negativas.',
+    duration: 5,
+    category: 'Jovens',
+    icon: '👥',
+    color: 'from-blue-400 to-indigo-600',
+    days: [
+      { day: 1, reference: 'Provérbios 13:20', focus: 'Com quem você anda?' },
+      { day: 2, reference: '1 Coríntios 15:33', focus: 'A Influência do Feed' },
+      { day: 3, reference: 'Eclesiastes 4:9-12', focus: 'Unidade faz a Força' },
+      { day: 4, reference: 'Provérbios 17:17', focus: 'Amigo de Verdade' },
+      { day: 5, reference: 'João 15:13', focus: 'O Maior Exemplo de Amizade' },
+    ]
+  },
+  {
+    id: 'checkpoint-paz',
+    title: 'Checkpoint de Paz',
+    description: 'Pressão na escola, vestibular e ansiedade com o futuro. Dê um pause com Deus.',
+    duration: 5,
+    category: 'Jovens',
+    icon: '🎮',
+    color: 'from-emerald-400 to-cyan-600',
+    days: [
+      { day: 1, reference: 'Filipenses 4:6-8', focus: 'Onde mora seu Pensamento?' },
+      { day: 2, reference: '2 Timóteo 1:7', focus: 'Mente Blindada, não Medrosa' },
+      { day: 3, reference: '1 Pedro 5:7', focus: 'Lançando o Estresse' },
+      { day: 4, reference: 'Isaías 26:3', focus: 'Paz que Não Oscila' },
+      { day: 5, reference: 'Salmos 42:11', focus: 'Fale com sua Alma' },
+    ]
+  },
+  {
+    id: 'identidade-real',
+    title: 'Identidade Real',
+    description: 'Descubra quem você é de verdade além das redes sociais e da pressão dos outros.',
+    duration: 7,
+    category: 'Jovens',
+    icon: '🤳',
+    color: 'from-violet-600 to-indigo-700',
+    days: [
+      { day: 1, reference: 'Gênesis 1:26-27', focus: 'Original de Fábrica' },
+      { day: 2, reference: 'João 1:12', focus: 'Filho, não escravo' },
+      { day: 3, reference: 'Efésios 1:3-14', focus: 'Visto e Escolhido' },
+      { day: 4, reference: 'Gálatas 2:20', focus: 'Nova Versão' },
+      { day: 5, reference: 'Salmos 139:13-16', focus: 'Design Inteligente' },
+      { day: 6, reference: '1 Pedro 2:9', focus: 'Pertencimento' },
+      { day: 7, reference: '2 Coríntios 5:17', focus: 'Reset Completo' },
+    ]
+  },
+  {
+    id: 'proposito-jogo',
+    title: 'Propósito em Jogo',
+    description: 'Qual é o seu papel no mundo? Entenda o plano de Deus para sua juventude.',
+    duration: 5,
+    category: 'Jovens',
+    icon: '🎯',
+    color: 'from-orange-500 to-amber-600',
+    days: [
+      { day: 1, reference: 'Jeremias 29:11', focus: 'O Futuro está Planejado' },
+      { day: 2, reference: 'Efésios 2:10', focus: 'Obra de Arte com Função' },
+      { day: 3, reference: 'Eclesiastes 12:1', focus: 'Tempo de Semear' },
+      { day: 4, reference: '1 Timóteo 4:12', focus: 'Exemplo Agora, não Depois' },
+      { day: 5, reference: 'Mateus 28:18-20', focus: 'A Missão de Todos' },
+    ]
+  },
+  {
+    id: 'pressao-social',
+    title: 'Offline e em Paz',
+    description: 'Como lidar com a pressão do grupo, comparação e os padrões do mundo.',
+    duration: 5,
+    category: 'Jovens',
+    icon: '🛡️',
+    color: 'from-rose-500 to-pink-600',
+    days: [
+      { day: 1, reference: 'Romanos 12:1-2', focus: 'Não entre no Molde' },
+      { day: 2, reference: '1 Coríntios 10:13', focus: 'A Saída de Emergência' },
+      { day: 3, reference: 'Gálatas 1:10', focus: 'Aprovação de quem?' },
+      { day: 4, reference: 'Provérbios 13:20', focus: 'O Círculo de Amigos' },
+      { day: 5, reference: 'Filipenses 4:11-13', focus: 'Satisfação Interna' },
+    ]
+  },
+  {
+    id: 'fe-conectada',
+    title: 'Fé Conectada',
+    description: 'Dicas práticas para manter uma rotina real com Deus no meio da correria.',
+    duration: 7,
+    category: 'Jovens',
+    icon: '⚡',
+    color: 'from-cyan-500 to-blue-600',
+    days: [
+      { day: 1, reference: 'João 15:1-8', focus: 'Wi-Fi Espiritual: Conectado' },
+      { day: 2, reference: 'Tiago 4:8', focus: 'Aproximação em 2 vias' },
+      { day: 3, reference: 'Salmos 119:9-11', focus: 'Limpando o Feed' },
+      { day: 4, reference: 'Mateus 6:5-15', focus: 'Oração sem Filtro' },
+      { day: 5, reference: 'Lucas 10:38-42', focus: 'Modo Avião: Pausa Necessária' },
+      { day: 6, reference: 'Hebreus 10:24-25', focus: 'Comunidade Real' },
+      { day: 7, reference: 'Apocalipse 3:20', focus: 'A Porta está Aberta' },
+    ]
+  },
+
+  // --- PLANOS EXISTENTES ---
   {
     id: 'ansiedade',
     title: 'Vencendo a Ansiedade',

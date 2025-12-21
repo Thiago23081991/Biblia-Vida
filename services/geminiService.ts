@@ -24,7 +24,7 @@ MODOS DE OPERAÇÃO:
    - Foco: Aplicação prática, identidade em Cristo e propósito.
 
 3. ADULTOS (18+ anos) - "O Mestre Teológico":
-   - Tom: Maduro, profundo, encorajador e sério.
+   - Tom: Maduro, profissional, encorajador e sério.
    - Estrutura: Apresente o versículo NVI, contexto histórico e exegese.
    - Sugira uma oração ou ponto de ação ao final.
 
@@ -49,6 +49,20 @@ FORMATO:
 const SEARCH_INSTRUCTION = `
 Você é um motor de busca bíblica avançado na NVI.
 Liste os 5 a 10 versículos mais relevantes para o termo.
+`;
+
+const DEVOTIONAL_INSTRUCTION = `
+Você é um Pastor e Mentor compassivo. Crie um devocional curto e encorajador baseado na passagem bíblica fornecida (NVI).
+O tom e a linguagem devem ser adaptados conforme o público-alvo:
+- CRIANÇAS: Use linguagem simples, lúdica e muitos emojis. Conte como se fosse uma história curta.
+- ADOLESCENTES: Use linguagem dinâmica, gírias leves (se apropriado), foco em dilemas reais e conectividade.
+- ADULTOS: Use tom profundo, reflexivo, com foco em maturidade espiritual e vida prática.
+
+FORMATO DE SAÍDA OBRIGATÓRIO (Markdown):
+**🌟 Versículo Chave:** [Referência e texto principal]
+**💭 Reflexão:** [Um parágrafo curto e profundo de encorajamento adaptado ao público - máx 4 frases]
+**🙏 Oração:** [Uma oração curta de uma frase]
+**🚀 Desafio do Dia:** [Uma ação simples para praticar hoje]
 `;
 
 const normalizeReference = (ref: string): string => {
@@ -113,6 +127,24 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
       contents: `Busca: "${keyword}"`,
     });
     return response.text || "Nada encontrado.";
+  } catch (error) {
+    return handleGeminiError(error);
+  }
+};
+
+export const generateDevotional = async (reference: string, audience: AudienceType): Promise<string> => {
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const normalizedRef = normalizeReference(reference);
+    let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      config: { systemInstruction: DEVOTIONAL_INSTRUCTION },
+      contents: `Passagem para devocional: "${normalizedRef}". Público-alvo: ${audiencePrompt}`,
+    });
+
+    return response.text || "Erro ao gerar devocional.";
   } catch (error) {
     return handleGeminiError(error);
   }

@@ -1,17 +1,18 @@
 
 import React, { useState } from 'react';
 import { AudienceType, HistoryItem, InputMode } from './types';
-import { generateExplanation, getBibleText, searchBibleVerses } from './services/geminiService';
+import { generateExplanation, getBibleText, searchBibleVerses, generateDevotional } from './services/geminiService';
 import AudienceSelector from './components/AudienceSelector';
 import ResultCard from './components/ResultCard';
 import BibleSelector from './components/BibleSelector';
 import StudySelector from './components/StudySelector';
 import ReadingPlanView from './components/ReadingPlanView';
 import ThematicPlansView from './components/ThematicPlansView';
-import { Book, Sparkles, Send, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library } from 'lucide-react';
+import DevotionalView from './components/DevotionalView';
+import { Book, Sparkles, Send, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library, Coffee } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [inputMode, setInputMode] = useState<InputMode>('plan');
+  const [inputMode, setInputMode] = useState<InputMode>('devotional');
   
   // Inputs for different modes
   const [inputText, setInputText] = useState(''); // Free Text
@@ -28,6 +29,8 @@ const App: React.FC = () => {
   
   // State to track if the current result is a pure reading/search or an explanation
   const [isReadingMode, setIsReadingMode] = useState(false);
+  // State to track if current result is a devotional
+  const [isDevotionalResult, setIsDevotionalResult] = useState(false);
 
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -46,6 +49,7 @@ const App: React.FC = () => {
     setLoading(true);
     setResult(null);
     setIsReadingMode(false);
+    setIsDevotionalResult(false);
 
     try {
       const generatedText = await generateExplanation(inputToUse, selectedAudience);
@@ -69,6 +73,28 @@ const App: React.FC = () => {
     }
   };
 
+  const handleGenerateDevotional = async (ref: string) => {
+    setLoading(true);
+    setResult(null);
+    setIsReadingMode(false);
+    setIsDevotionalResult(true);
+    
+    try {
+      const devotional = await generateDevotional(ref, selectedAudience);
+      setResult(devotional);
+      addToHistory(ref, selectedAudience, devotional);
+      
+      setTimeout(() => {
+        document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } catch (error) {
+      console.error(error);
+      setResult("Erro ao gerar o devocional.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleReadBible = async (forcedInput?: string) => {
     let inputToUse = forcedInput || (inputMode === 'bible' ? pickerText : inputText);
     
@@ -77,6 +103,7 @@ const App: React.FC = () => {
     setLoading(true);
     setResult(null);
     setIsReadingMode(true);
+    setIsDevotionalResult(false);
 
     try {
       const bibleText = await getBibleText(inputToUse);
@@ -99,6 +126,7 @@ const App: React.FC = () => {
     setLoading(true);
     setResult(null);
     setIsReadingMode(true);
+    setIsDevotionalResult(false);
 
     try {
       const searchResults = await searchBibleVerses(searchText);
@@ -137,11 +165,18 @@ const App: React.FC = () => {
     setSelectedAudience(item.audience);
     setResult(item.response);
     setIsReadingMode(false);
+    setIsDevotionalResult(false);
     setShowHistory(false);
   };
 
   const renderInputSection = () => {
     switch (inputMode) {
+      case 'devotional':
+        return <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading} />;
+      case 'plan':
+        return <ReadingPlanView onSelectReference={handlePlanAction} isLoading={loading} />;
+      case 'thematic':
+        return <ThematicPlansView onSelectAction={handlePlanAction} isLoading={loading} />;
       case 'free':
         return (
           <div className="relative animate-fade-in">
@@ -161,10 +196,6 @@ const App: React.FC = () => {
         return <BibleSelector key={bibleSelectorKey} onSelectionChange={setPickerText} />;
       case 'study':
         return <StudySelector onSelectTopic={setStudyTopic} />;
-      case 'plan':
-        return <ReadingPlanView onSelectReference={handlePlanAction} isLoading={loading} />;
-      case 'thematic':
-        return <ThematicPlansView onSelectAction={handlePlanAction} isLoading={loading} />;
       case 'search':
         return (
           <div className="relative animate-fade-in py-4">
@@ -222,6 +253,15 @@ const App: React.FC = () => {
         {/* Navigation Tabs */}
         <div className="flex p-1 bg-slate-200/50 rounded-xl mb-6 overflow-x-auto no-scrollbar">
           <button
+            onClick={() => setInputMode('devotional')}
+            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-1 ${
+              inputMode === 'devotional' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:bg-slate-100'
+            }`}
+          >
+            <Coffee size={18} />
+            Devocional
+          </button>
+          <button
             onClick={() => setInputMode('plan')}
             className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-1 ${
               inputMode === 'plan' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:bg-slate-100'
@@ -237,7 +277,7 @@ const App: React.FC = () => {
             }`}
           >
             <Library size={18} />
-            Planos Temáticos
+            Temas
           </button>
           <button
             onClick={() => setInputMode('free')}
@@ -287,6 +327,7 @@ const App: React.FC = () => {
                 {inputMode === 'bible' && "Escolha uma passagem para ler ou explicar"}
                 {inputMode === 'study' && "Selecione um tema de estudo guiado"}
                 {inputMode === 'search' && "Busque versículos específicos"}
+                {inputMode === 'devotional' && "Prepare seu coração para meditação"}
               </label>
             </div>
           )}
@@ -299,29 +340,32 @@ const App: React.FC = () => {
           {!['plan', 'thematic', 'search'].includes(inputMode) && (
             <div className="mt-8 flex flex-col md:flex-row items-center gap-6 justify-between border-t border-slate-100 pt-6">
               <div className="w-full md:w-auto">
-                 <p className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Público para Explicação</p>
+                 <p className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Público para {inputMode === 'devotional' ? 'Devocional' : 'Explicação'}</p>
                  <AudienceSelector selected={selectedAudience} onChange={setSelectedAudience} />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                <button
-                  onClick={() => handleReadBible()}
-                  disabled={loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)}
-                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-700 bg-white border-2 border-slate-200 hover:border-brand-300 hover:bg-slate-50 transition-all disabled:opacity-50"
-                >
-                  <BookOpen size={18} />
-                  <span>Ler Bíblia</span>
-                </button>
+              {/* Botões extras apenas se NÃO for modo devocional (pois ele tem botões internos) */}
+              {inputMode !== 'devotional' && (
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                  <button
+                    onClick={() => handleReadBible()}
+                    disabled={loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)}
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-700 bg-white border-2 border-slate-200 hover:border-brand-300 hover:bg-slate-50 transition-all disabled:opacity-50"
+                  >
+                    <BookOpen size={18} />
+                    <span>Ler Bíblia</span>
+                  </button>
 
-                <button
-                  onClick={() => handleGenerate()}
-                  disabled={loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)}
-                  className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-white bg-brand-600 hover:bg-brand-700 hover:shadow-lg transition-all disabled:bg-slate-300"
-                >
-                  {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Send size={18} />}
-                  <span>{loading ? "Processando..." : "Explicar"}</span>
-                </button>
-              </div>
+                  <button
+                    onClick={() => handleGenerate()}
+                    disabled={loading || (inputMode === 'free' && !inputText.trim()) || (inputMode === 'study' && !studyTopic)}
+                    className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-white bg-brand-600 hover:bg-brand-700 hover:shadow-lg transition-all disabled:bg-slate-300"
+                  >
+                    {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Send size={18} />}
+                    <span>{loading ? "Processando..." : "Explicar"}</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -347,11 +391,12 @@ const App: React.FC = () => {
             <ResultCard 
               content={result} 
               audience={isReadingMode ? AudienceType.ADULT : selectedAudience} 
+              isDevotional={isDevotionalResult}
             />
           </div>
         )}
         
-        {!result && !loading && !['plan', 'thematic'].includes(inputMode) && (
+        {!result && !loading && !['plan', 'thematic', 'devotional'].includes(inputMode) && (
           <div className="text-center py-12 text-slate-400">
             <div className="inline-block p-4 rounded-full bg-slate-100 mb-4">
               <Sparkles size={32} className="opacity-50" />
