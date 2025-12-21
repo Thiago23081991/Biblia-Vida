@@ -6,8 +6,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/',
-  define: {
-    // Garante que o process.env.API_KEY esteja disponível no navegador
-    'process.env.API_KEY': JSON.stringify(process.env.VITE_API_KEY || process.env.API_KEY || '')
-  }
+  // Removemos a definição estática de 'process.env.API_KEY' para não sobrescrever
+  // a injeção em tempo de execução da plataforma com uma string vazia do build.
 })

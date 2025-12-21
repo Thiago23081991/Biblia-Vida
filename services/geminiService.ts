@@ -75,37 +75,41 @@ const normalizeReference = (ref: string): string => {
 };
 
 const handleGeminiError = (error: any): string => {
-  console.error("Erro Técnico Gemini:", error);
-  const errorMessage = error.toString().toLowerCase();
+  console.error("Gemini API Error Detail:", error);
+  const errorMessage = error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || "";
   
-  if (!process.env.API_KEY) return "🔑 Chave de API não configurada. Verifique as variáveis de ambiente.";
-  if (errorMessage.includes("429")) return "⏳ Limite de requisições atingido. Aguarde um minuto.";
-  if (errorMessage.includes("401") || errorMessage.includes("403")) return "🚫 Chave de API inválida ou sem permissão.";
-  if (errorMessage.includes("safety")) return "🛡️ Conteúdo bloqueado pelos filtros de segurança da IA.";
+  if (errorMessage.includes("api_key_invalid") || errorMessage.includes("401") || errorMessage.includes("403")) {
+    return "🚫 Chave de API inválida ou sem permissão. Verifique as variáveis de ambiente no Vercel (API_KEY).";
+  }
+  if (errorMessage.includes("429") || errorMessage.includes("quota")) {
+    return "⏳ Limite de requisições atingido. Tente novamente em um minuto.";
+  }
+  if (errorMessage.includes("safety") || errorMessage.includes("finish_reason_safety")) {
+    return "🛡️ O conteúdo foi filtrado por motivos de segurança.";
+  }
+  if (errorMessage.includes("not found") || errorMessage.includes("404")) {
+    return "🔍 Modelo de IA não encontrado. Tente novamente.";
+  }
   
-  return "😔 Erro na conexão com a IA. Verifique sua internet ou tente novamente.";
+  return "😔 Erro na conexão com a IA. Verifique sua chave no painel da Vercel ou sua conexão.";
 };
 
-// Inicializa a IA apenas se a chave existir
-const getAI = () => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("API_KEY_MISSING");
-  return new GoogleGenAI({ apiKey });
-};
+// Modelo recomendado para tarefas gerais de texto
+const MODEL_NAME = 'gemini-2.0-flash';
 
 export const generateExplanation = async (input: string, audience: AudienceType): Promise<string> => {
   try {
-    const ai = getAI();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const normalizedInput = normalizeReference(input);
     let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: MODEL_NAME,
       config: { systemInstruction: SYSTEM_INSTRUCTION },
       contents: `Tema/Passagem: "${normalizedInput}". Público: ${audiencePrompt}`,
     });
 
-    return response.text || "A IA não retornou conteúdo.";
+    return response.text || "Sem resposta da IA.";
   } catch (error) {
     return handleGeminiError(error);
   }
@@ -113,11 +117,11 @@ export const generateExplanation = async (input: string, audience: AudienceType)
 
 export const getBibleText = async (reference: string): Promise<string> => {
   try {
-    const ai = getAI();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const normalizedRef = normalizeReference(reference);
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: MODEL_NAME,
       config: { systemInstruction: READING_INSTRUCTION },
       contents: `Texto para: "${normalizedRef}"`,
     });
@@ -130,13 +134,13 @@ export const getBibleText = async (reference: string): Promise<string> => {
 
 export const searchBibleVerses = async (keyword: string): Promise<string> => {
   try {
-    const ai = getAI();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: MODEL_NAME,
       config: { systemInstruction: SEARCH_INSTRUCTION },
       contents: `Busca: "${keyword}"`,
     });
-    return response.text || "Nenhum resultado encontrado.";
+    return response.text || "Nada encontrado.";
   } catch (error) {
     return handleGeminiError(error);
   }
@@ -144,12 +148,12 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
 
 export const generateDevotional = async (reference: string, audience: AudienceType): Promise<string> => {
   try {
-    const ai = getAI();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const normalizedRef = normalizeReference(reference);
     let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: MODEL_NAME,
       config: { systemInstruction: DEVOTIONAL_INSTRUCTION },
       contents: `Passagem para devocional: "${normalizedRef}". Público-alvo: ${audiencePrompt}`,
     });
