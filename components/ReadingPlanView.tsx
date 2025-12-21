@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { getReadingForDate } from '../data/readingPlan';
 import { ReadingPlanType } from '../types';

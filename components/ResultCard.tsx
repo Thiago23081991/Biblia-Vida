@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AudienceType } from '../types';
 import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone } from 'lucide-react';

@@ -1,4 +1,3 @@
-
 import { ReadingPlanType } from '../types';
 import { bibleBooks } from './bibleBooks';
 

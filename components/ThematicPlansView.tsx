@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { thematicPlans, ThematicPlan } from '../data/thematicPlans';
 import { BookOpen, Sparkles, ChevronLeft, Clock, ArrowRight, Loader2, Filter, Users, Heart, GraduationCap, Zap } from 'lucide-react';
@@ -95,7 +94,7 @@ const ThematicPlansView: React.FC<ThematicPlansViewProps> = ({ onSelectAction, i
                 <button 
                   onClick={() => handleAction(day.reference, 'explain', `explain-${day.day}`)}
                   disabled={isLoading}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-all disabled:opacity-50"
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-9 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-all disabled:opacity-50"
                 >
                   {isLoading && activeActionId === `explain-${day.day}` ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                   Explicar
