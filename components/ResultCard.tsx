@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { AudienceType } from '../types';
-import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X, ChevronLeft, ChevronRight, Loader2, FastForward, Rewind } from 'lucide-react';
+import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X, Loader2, FastForward, Rewind } from 'lucide-react';
 
 interface ResultCardProps {
   content: string;

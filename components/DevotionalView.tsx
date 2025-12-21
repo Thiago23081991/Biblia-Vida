@@ -25,86 +25,86 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
   };
 
   return (
-    <div className="animate-fade-in flex flex-col gap-4 md:gap-6">
-      {/* Hero Devocional - Mais compacto no Mobile */}
-      <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 text-white shadow-lg overflow-hidden relative">
+    <div className="animate-fade-in flex flex-col gap-4">
+      {/* Hero Devocional - Ultra compacto no Mobile */}
+      <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 text-white shadow-lg overflow-hidden relative">
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-2 md:mb-4">
-            <div className="p-1.5 md:p-2 bg-white/20 rounded-lg">
-              <Coffee size={18} className="md:w-5 md:h-5" />
+          <div className="flex items-center gap-2 mb-1 md:mb-4">
+            <div className="p-1.5 bg-white/20 rounded-lg">
+              <Coffee size={14} className="md:w-5 md:h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest opacity-80">Momento Devocional</span>
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-80">Momento Devocional</span>
           </div>
-          <h2 className="text-xl md:text-3xl font-serif font-bold mb-1 md:mb-2">Reflexão para sua Alma</h2>
-          <p className="text-white/80 text-xs md:text-base max-w-md leading-relaxed">Pense, medite e cresça com a Palavra.</p>
+          <h2 className="text-lg md:text-3xl font-serif font-bold leading-tight">Reflexão Diária</h2>
         </div>
-        <Quote className="absolute right-[-10px] bottom-[-10px] text-white/10 w-32 h-32 md:w-48 md:h-48 -rotate-12" />
+        <Quote className="absolute right-[-20px] bottom-[-20px] text-white/10 w-24 h-24 md:w-48 md:h-48 -rotate-12" />
       </div>
 
-      <div className="bg-white rounded-[2rem] border border-slate-200 p-5 md:p-8 shadow-sm">
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 md:p-8 shadow-sm">
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm md:text-lg font-black text-slate-800 uppercase tracking-tight">Passagem Selecionada</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Passagem de Hoje</h3>
             <button 
               onClick={handleRandomSuggestion}
-              className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors active:rotate-180 duration-500"
-              title="Nova Sugestão"
+              className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors active:rotate-180 duration-500"
             >
-              <RefreshCw size={18} />
+              <RefreshCw size={14} />
             </button>
           </div>
 
-          {/* Card de Referência Ativa */}
+          {/* Card de Referência Ativa - Mais Compacto */}
           <button 
             onClick={() => setShowSelector(!showSelector)}
-            className={`w-full flex items-center justify-between p-4 md:p-5 rounded-2xl border-2 transition-all active:scale-[0.98]
+            className={`w-full flex items-center justify-between p-3 md:p-5 rounded-2xl border-2 transition-all active:scale-[0.98]
               ${showSelector ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-100 bg-slate-50 hover:border-slate-200'}
             `}
           >
             <div className="flex items-center gap-3">
-              <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-100">
-                <BookOpen size={18} className="text-indigo-600" />
+              <div className="bg-white p-1.5 rounded-lg shadow-sm border border-slate-100">
+                <BookOpen size={16} className="text-indigo-600" />
               </div>
-              <span className="font-serif font-black text-lg md:text-xl text-slate-800">{selectedRef}</span>
+              <span className="font-serif font-black text-base md:text-xl text-slate-800">{selectedRef}</span>
             </div>
             <div className="text-slate-400">
-              {showSelector ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              {showSelector ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             </div>
           </button>
 
           {/* Seletor Colapsável */}
           {showSelector && (
-            <div className="mt-4 animate-slide-up-fade">
-              <div className="p-1 bg-slate-50 rounded-2xl">
-                <BibleSelector onSelectionChange={setSelectedRef} />
+            <div className="mt-3 animate-slide-up-fade">
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden shadow-inner">
+                <div className="max-h-[300px] overflow-y-auto p-2 no-scrollbar">
+                  <BibleSelector onSelectionChange={setSelectedRef} />
+                </div>
                 <button 
                   onClick={() => setShowSelector(false)}
-                  className="w-full py-3 text-[10px] font-black uppercase text-indigo-600 tracking-widest hover:bg-indigo-50 transition-colors rounded-b-2xl"
+                  className="w-full py-2.5 text-[10px] font-black uppercase text-white bg-indigo-600 tracking-widest hover:bg-indigo-700 transition-colors"
                 >
-                  Confirmar Seleção
+                  Confirmar Referência
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Botões de Ação - Grid Otimizado */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        {/* Botões de Ação - Grid Otimizado para Mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button
             onClick={() => onRead(selectedRef)}
             disabled={isLoading}
-            className="flex-1 flex items-center justify-center gap-2 h-14 md:h-16 rounded-2xl font-bold text-slate-700 bg-white border-2 border-slate-200 hover:border-indigo-300 active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center justify-center gap-2 h-12 md:h-16 rounded-2xl font-bold text-slate-700 bg-slate-50 border-2 border-slate-200 hover:border-indigo-300 active:scale-95 transition-all disabled:opacity-50"
           >
-            <BookOpen size={20} />
-            <span>Ler</span>
+            <BookOpen size={18} />
+            <span className="text-sm">Apenas Ler</span>
           </button>
           <button
             onClick={() => onGenerate(selectedRef)}
             disabled={isLoading}
-            className="flex-[2] flex items-center justify-center gap-2 h-14 md:h-16 rounded-2xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95 transition-all disabled:bg-slate-300 disabled:shadow-none"
+            className="flex items-center justify-center gap-2 h-12 md:h-16 rounded-2xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95 transition-all disabled:bg-slate-300 disabled:shadow-none"
           >
-            {isLoading ? <Loader2 size={22} className="animate-spin" /> : <Sparkles size={22} />}
-            <span>Gerar Devocional</span>
+            {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+            <span className="text-sm">Criar Devocional</span>
           </button>
         </div>
       </div>

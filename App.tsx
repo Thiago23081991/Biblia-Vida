@@ -18,7 +18,7 @@ const App: React.FC = () => {
   const [pickerText, setPickerText] = useState('Gênesis 1');
   const [searchText, setSearchText] = useState('');
   const [studyTopic, setStudyTopic] = useState('');
-  const [bibleSelectorKey, setBibleSelectorKey] = useState(0);
+  const [bibleSelectorKey] = useState(0);
   const [selectedAudience, setSelectedAudience] = useState<AudienceType>(AudienceType.ADULT);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
