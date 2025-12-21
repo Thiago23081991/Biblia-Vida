@@ -76,30 +76,53 @@ const normalizeReference = (ref: string): string => {
 
 const handleGeminiError = (error: any): string => {
   console.error("Gemini API Error Detail:", error);
+  
+  if (!navigator.onLine) {
+    return "🌐 Parece que você está sem internet. Verifique sua conexão e tente novamente.";
+  }
+
   const errorMessage = error?.message?.toLowerCase() || error?.toString()?.toLowerCase() || "";
   
-  if (errorMessage.includes("api_key_invalid") || errorMessage.includes("401") || errorMessage.includes("403")) {
-    return "🚫 Chave de API inválida ou sem permissão. Verifique as variáveis de ambiente no Vercel (API_KEY).";
+  // Verificação de Chave Ausente ou mal configurada
+  if (!process.env.API_KEY || process.env.API_KEY === 'undefined' || process.env.API_KEY === '') {
+    return "🔑 Chave de API não configurada corretamente. Se você for o administrador, verifique a variável de ambiente API_KEY.";
   }
-  if (errorMessage.includes("429") || errorMessage.includes("quota")) {
-    return "⏳ Limite de requisições atingido. Tente novamente em um minuto.";
+
+  // Erros de Autenticação (401, 403)
+  if (errorMessage.includes("api_key_invalid") || errorMessage.includes("401") || errorMessage.includes("403") || errorMessage.includes("invalid api key")) {
+    return "🚫 Chave de API inválida ou sem permissão. Verifique as configurações de ambiente no servidor.";
   }
-  if (errorMessage.includes("safety") || errorMessage.includes("finish_reason_safety")) {
-    return "🛡️ O conteúdo foi filtrado por motivos de segurança.";
+
+  // Erros de Cota / Limite de Requisições (429)
+  if (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("too many requests") || errorMessage.includes("limit exceeded")) {
+    return "⏳ O limite de mensagens foi atingido. Por favor, aguarde um minutinho antes de tentar novamente.";
   }
-  if (errorMessage.includes("not found") || errorMessage.includes("404")) {
-    return "🔍 Modelo de IA não encontrado. Tente novamente.";
+
+  // Erros de Segurança/Filtro (O Gemini bloqueia certas palavras/contextos)
+  if (errorMessage.includes("safety") || errorMessage.includes("finish_reason_safety") || errorMessage.includes("blocked")) {
+    return "🛡️ O conteúdo foi filtrado pelos critérios de segurança da IA por conter termos sensíveis.";
+  }
+
+  // Erros de Rede / Conexão com o servidor da Google
+  if (errorMessage.includes("fetch") || errorMessage.includes("network") || errorMessage.includes("failed to fetch") || errorMessage.includes("connection")) {
+    return "📡 Falha na comunicação com os servidores da IA. Pode ser uma instabilidade momentânea na rede.";
+  }
+
+  // Erros de Modelo não encontrado (404)
+  if (errorMessage.includes("not found") || errorMessage.includes("404") || errorMessage.includes("model")) {
+    return "🔍 Tivemos um problema ao localizar o modelo de IA selecionado. Tente novamente em instantes.";
   }
   
-  return "😔 Erro na conexão com a IA. Verifique sua chave no painel da Vercel ou sua conexão.";
+  return "😔 Algo deu errado na conexão com a IA. Tente recarregar a página ou tente novamente mais tarde.";
 };
 
-// Modelo recomendado para tarefas gerais de texto
-const MODEL_NAME = 'gemini-2.0-flash';
+// Fix: Updated model name to gemini-3-flash-preview as per standard guidelines for basic text tasks
+const MODEL_NAME = 'gemini-3-flash-preview';
 
 export const generateExplanation = async (input: string, audience: AudienceType): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Fix: Using the mandatory initialization format for GoogleGenAI
+    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
     const normalizedInput = normalizeReference(input);
     let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
@@ -117,7 +140,8 @@ export const generateExplanation = async (input: string, audience: AudienceType)
 
 export const getBibleText = async (reference: string): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Fix: Using the mandatory initialization format for GoogleGenAI
+    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
     const normalizedRef = normalizeReference(reference);
 
     const response = await ai.models.generateContent({
@@ -134,7 +158,8 @@ export const getBibleText = async (reference: string): Promise<string> => {
 
 export const searchBibleVerses = async (keyword: string): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Fix: Using the mandatory initialization format for GoogleGenAI
+    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { systemInstruction: SEARCH_INSTRUCTION },
@@ -148,7 +173,8 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
 
 export const generateDevotional = async (reference: string, audience: AudienceType): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Fix: Using the mandatory initialization format for GoogleGenAI
+    const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
     const normalizedRef = normalizeReference(reference);
     let audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
