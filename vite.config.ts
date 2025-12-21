@@ -6,9 +6,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/',
-  define: {
-    // Mantemos process.env.API_KEY disponível, mas sem forçar um valor de build-time 
-    // se ele não existir, deixando para o ambiente de execução.
-    'process.env': process.env
-  }
+  // Deixamos o ambiente gerenciar process.env para garantir que 
+  // chaves selecionadas via dialog sejam lidas corretamente.
 })
