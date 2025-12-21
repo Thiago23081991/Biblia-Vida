@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { bibleBooks } from '../data/bibleBooks';
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronDown, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 interface BibleSelectorProps {
   onSelectionChange: (text: string) => void;

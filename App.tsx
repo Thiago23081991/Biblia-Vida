@@ -9,7 +9,7 @@ import StudySelector from './components/StudySelector';
 import ReadingPlanView from './components/ReadingPlanView';
 import ThematicPlansView from './components/ThematicPlansView';
 import DevotionalView from './components/DevotionalView';
-import { Book, Sparkles, Send, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library, Coffee } from 'lucide-react';
+import { Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, Search, GraduationCap, CalendarDays, Library, Coffee } from 'lucide-react';
 
 const App: React.FC = () => {
   const [inputMode, setInputMode] = useState<InputMode>('devotional');
