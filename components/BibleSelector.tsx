@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { bibleBooks } from '../data/bibleBooks';
-import { ChevronDown, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronDown, ChevronsLeft, ChevronsRight, Plus, Minus } from 'lucide-react';
 
 interface BibleSelectorProps {
   onSelectionChange: (text: string) => void;
@@ -50,6 +50,16 @@ const BibleSelector: React.FC<BibleSelectorProps> = ({ onSelectionChange }) => {
     }
   };
 
+  const adjustVerse = (type: 'start' | 'end', delta: number) => {
+    if (type === 'start') {
+      const val = parseInt(verseStart || '0') + delta;
+      setVerseStart(val > 0 ? val.toString() : '');
+    } else {
+      const val = parseInt(verseEnd || (verseStart || '0')) + delta;
+      setVerseEnd(val > 0 ? val.toString() : '');
+    }
+  };
+
   return (
     <div className="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-200 animate-fade-in flex flex-col gap-4 shadow-inner">
       <div className="flex flex-col gap-4">
@@ -91,29 +101,58 @@ const BibleSelector: React.FC<BibleSelectorProps> = ({ onSelectionChange }) => {
           </div>
         </div>
 
-        {/* Row 2: Verses */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Row 2: Verses with adjustment buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Início</label>
-            <input
-              type="number"
-              min="1"
-              value={verseStart}
-              onChange={(e) => setVerseStart(e.target.value)}
-              placeholder="Vers."
-              className="w-full h-12 bg-white border border-slate-300 text-slate-800 px-4 rounded-xl text-base focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all shadow-sm"
-            />
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Início do Versículo</label>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => adjustVerse('start', -1)}
+                className="w-10 h-12 flex items-center justify-center bg-white border border-slate-300 rounded-l-xl text-slate-400 hover:text-brand-600 transition-colors"
+              >
+                <Minus size={16} />
+              </button>
+              <input
+                type="number"
+                min="1"
+                value={verseStart}
+                onChange={(e) => setVerseStart(e.target.value)}
+                placeholder="Ver."
+                className="flex-grow h-12 bg-white border-y border-slate-300 text-slate-800 px-3 text-center text-base focus:outline-none"
+              />
+              <button 
+                onClick={() => adjustVerse('start', 1)}
+                className="w-10 h-12 flex items-center justify-center bg-white border border-slate-300 rounded-r-xl text-slate-400 hover:text-brand-600 transition-colors"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
           </div>
+          
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fim</label>
-            <input
-              type="number"
-              min={verseStart || "1"}
-              value={verseEnd}
-              onChange={(e) => setVerseEnd(e.target.value)}
-              placeholder="Vers."
-              className="w-full h-12 bg-white border border-slate-300 text-slate-800 px-4 rounded-xl text-base focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all shadow-sm"
-            />
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fim do Versículo (Opcional)</label>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => adjustVerse('end', -1)}
+                className="w-10 h-12 flex items-center justify-center bg-white border border-slate-300 rounded-l-xl text-slate-400 hover:text-brand-600 transition-colors"
+              >
+                <Minus size={16} />
+              </button>
+              <input
+                type="number"
+                min={verseStart || "1"}
+                value={verseEnd}
+                onChange={(e) => setVerseEnd(e.target.value)}
+                placeholder="Ver."
+                className="flex-grow h-12 bg-white border-y border-slate-300 text-slate-800 px-3 text-center text-base focus:outline-none"
+              />
+              <button 
+                onClick={() => adjustVerse('end', 1)}
+                className="w-10 h-12 flex items-center justify-center bg-white border border-slate-300 rounded-r-xl text-slate-400 hover:text-brand-600 transition-colors"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

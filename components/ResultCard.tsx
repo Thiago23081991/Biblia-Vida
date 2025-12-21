@@ -1,15 +1,19 @@
 
 import React, { useState } from 'react';
 import { AudienceType } from '../types';
-import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X } from 'lucide-react';
+import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X, ChevronLeft, ChevronRight, Loader2, FastForward, Rewind } from 'lucide-react';
 
 interface ResultCardProps {
   content: string;
   audience: AudienceType;
   isDevotional?: boolean;
+  isReadingMode?: boolean;
+  onNavigate?: (direction: 'prev' | 'next') => void;
+  isLoading?: boolean;
+  currentReference?: string;
 }
 
-const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional }) => {
+const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional, isReadingMode, onNavigate, isLoading, currentReference }) => {
   const [copied, setCopied] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
 
@@ -49,6 +53,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional
       setShowShareMenu(false);
     }
   };
+
+  const isVerseRef = currentReference?.includes(':');
 
   const styles = isDevotional ? {
     container: "bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-xl shadow-indigo-100/30",
@@ -99,9 +105,47 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional
         </button>
       </div>
 
-      <div className="prose prose-slate max-w-none">
+      <div className="prose prose-slate max-w-none min-h-[100px]">
         {renderContent(content)}
       </div>
+
+      {isReadingMode && onNavigate && (
+        <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col items-center gap-4">
+          <div className="flex w-full items-center justify-between gap-3">
+            <button
+              onClick={() => onNavigate('prev')}
+              disabled={isLoading}
+              className="flex-1 flex items-center justify-center gap-2 h-14 bg-white border-2 border-slate-100 rounded-2xl text-slate-500 font-bold hover:bg-slate-50 hover:border-slate-200 active:scale-95 transition-all disabled:opacity-40"
+            >
+              <Rewind size={20} />
+              <span className="hidden sm:inline">{isVerseRef ? 'Versículo Anterior' : 'Capítulo Anterior'}</span>
+              <span className="sm:hidden">Anterior</span>
+            </button>
+            
+            {isLoading ? (
+              <div className="bg-brand-600 text-white p-3 rounded-full animate-spin shadow-lg">
+                <Loader2 size={24} />
+              </div>
+            ) : (
+              <div className="px-4 py-1.5 bg-brand-50 rounded-full">
+                 <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest">{currentReference}</span>
+              </div>
+            )}
+
+            <button
+              onClick={() => onNavigate('next')}
+              disabled={isLoading}
+              className="flex-1 flex items-center justify-center gap-2 h-14 bg-brand-600 text-white rounded-2xl font-bold hover:bg-brand-700 active:scale-95 shadow-xl shadow-brand-100 transition-all disabled:opacity-40"
+            >
+              <span className="hidden sm:inline">{isVerseRef ? 'Próximo Versículo' : 'Próximo Capítulo'}</span>
+              <span className="sm:hidden">Próximo</span>
+              <FastForward size={20} />
+            </button>
+          </div>
+          
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Navegação Contínua Ativa</p>
+        </div>
+      )}
 
       {/* Share Modal / Bottom Sheet */}
       {showShareMenu && (
