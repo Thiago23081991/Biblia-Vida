@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { AudienceType } from '../types';
-// Added Book to the lucide-react imports
 import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X, Loader2, FastForward, Rewind, Book } from 'lucide-react';
 
 interface ResultCardProps {
@@ -55,38 +54,67 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional
     }
   };
 
-  const styles = isDevotional ? {
-    container: "bg-slate-900 border-brand-400 shadow-2xl shadow-brand-400/5",
-    heading: "text-brand-400 font-black border-b border-slate-800 pb-3 mb-6 mt-8 uppercase tracking-widest text-xs",
-    strong: "text-white font-black",
-    text: "text-slate-300 font-serif leading-relaxed"
-  } : audience === AudienceType.CHILD ? {
-    container: "bg-amber-400 border-black shadow-2xl shadow-amber-400/20",
-    heading: "text-black font-bold mb-6 mt-8 font-hand text-2xl border-b border-black/10 pb-2",
-    strong: "text-black font-black",
-    text: "text-black font-hand text-2xl leading-snug"
-  } : audience === AudienceType.TEEN ? {
-    container: "bg-slate-900 border-slate-700 shadow-2xl",
-    heading: "text-brand-400 font-black mb-6 mt-8 uppercase tracking-tighter italic text-sm",
-    strong: "text-white font-bold",
-    text: "text-slate-300 font-sans text-base leading-relaxed"
-  } : {
-    container: "bg-slate-900 border-slate-800 shadow-2xl",
-    heading: "text-brand-400 font-black border-b border-slate-800 pb-3 mb-6 mt-8 text-xs uppercase tracking-widest",
-    strong: "text-white font-bold",
-    text: "text-slate-300 font-serif text-lg leading-relaxed"
+  // Definição de estilos baseada no contexto
+  const getStyles = () => {
+    if (isReadingMode) {
+      return {
+        container: "bg-slate-950 border-slate-900 shadow-none",
+        heading: "hidden",
+        strong: "text-brand-400 font-black",
+        text: "text-slate-200 font-serif text-xl md:text-2xl leading-[1.8] tracking-tight"
+      };
+    }
+    
+    if (isDevotional) {
+      return {
+        container: "bg-slate-900 border-brand-400 shadow-2xl shadow-brand-400/5",
+        heading: "text-brand-400 font-black border-b border-slate-800 pb-3 mb-6 mt-8 uppercase tracking-widest text-xs",
+        strong: "text-white font-black",
+        text: "text-slate-300 font-serif leading-relaxed"
+      };
+    }
+
+    if (audience === AudienceType.CHILD) {
+      return {
+        container: "bg-amber-400 border-black shadow-2xl shadow-amber-400/20",
+        heading: "text-black font-bold mb-6 mt-8 font-hand text-2xl border-b border-black/10 pb-2",
+        strong: "text-black font-black",
+        text: "text-black font-hand text-2xl leading-snug"
+      };
+    }
+
+    if (audience === AudienceType.TEEN) {
+      return {
+        container: "bg-slate-900 border-slate-700 shadow-2xl",
+        heading: "text-brand-400 font-black mb-6 mt-8 uppercase tracking-tighter italic text-sm",
+        strong: "text-white font-bold",
+        text: "text-slate-300 font-sans text-base leading-relaxed"
+      };
+    }
+
+    return {
+      container: "bg-slate-900 border-slate-800 shadow-2xl",
+      heading: "text-brand-400 font-black border-b border-slate-800 pb-3 mb-6 mt-8 text-xs uppercase tracking-widest",
+      strong: "text-white font-bold",
+      text: "text-slate-300 font-serif text-lg leading-relaxed"
+    };
   };
+
+  const styles = getStyles();
 
   const renderContent = (text: string) => {
     if (!text) return null;
     return text.split('\n').map((line, index) => {
       if (!line.trim()) return <div key={index} className="h-6"></div>;
-      if (line.startsWith('**') && (line.includes('Passagem') || line.includes('Público') || line.includes('Explicação') || line.includes('Aplicação') || line.includes('Versículo') || line.includes('Reflexão') || line.includes('Oração') || line.includes('Desafio'))) {
+      
+      // No modo leitura, limpamos marcadores de cabeçalho da IA
+      if (!isReadingMode && line.startsWith('**') && (line.includes('Passagem') || line.includes('Público') || line.includes('Explicação') || line.includes('Aplicação') || line.includes('Versículo') || line.includes('Reflexão') || line.includes('Oração') || line.includes('Desafio'))) {
         return <h3 key={index} className={styles.heading}>{line.replace(/\*\*/g, '')}</h3>;
       }
+
       const parts = line.split(/(\*\*.*?\*\*)/g);
       return (
-        <p key={index} className={`mb-4 ${styles.text}`}>
+        <p key={index} className={`mb-6 ${styles.text}`}>
           {parts.map((part, pIdx) => part.startsWith('**') ? <strong key={pIdx} className={styles.strong}>{part.slice(2, -2)}</strong> : part)}
         </p>
       );
@@ -94,60 +122,79 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional
   };
 
   return (
-    <div className={`w-full rounded-[2.5rem] border-2 p-6 md:p-12 relative animate-fade-in ${styles.container}`}>
-      <div className="absolute top-5 right-5 flex gap-3 z-10">
-        <button onClick={() => handleCopy()} className="p-3 bg-slate-800/80 backdrop-blur rounded-2xl shadow-sm hover:bg-slate-700 active:scale-90 transition-all border border-slate-700">
-          {copied ? <Check size={20} className="text-green-400" /> : <Copy size={20} className="text-brand-400" />}
-        </button>
-        <button onClick={() => setShowShareMenu(true)} className="p-3 bg-brand-400 rounded-2xl shadow-lg hover:bg-brand-500 active:scale-90 transition-all text-black">
-          <Share2 size={20} />
-        </button>
-      </div>
+    <div className={`w-full rounded-[2.5rem] border-2 p-8 md:p-16 relative animate-fade-in transition-all duration-500 ${styles.container}`}>
+      {/* Botões ocultos no modo leitura para focar no texto */}
+      {!isReadingMode && (
+        <div className="absolute top-5 right-5 flex gap-3 z-10">
+          <button onClick={() => handleCopy()} className="p-3 bg-slate-800/80 backdrop-blur rounded-2xl shadow-sm hover:bg-slate-700 active:scale-90 transition-all border border-slate-700">
+            {copied ? <Check size={20} className="text-green-400" /> : <Copy size={20} className="text-brand-400" />}
+          </button>
+          <button onClick={() => setShowShareMenu(true)} className="p-3 bg-brand-400 rounded-2xl shadow-lg hover:bg-brand-500 active:scale-90 transition-all text-black">
+            <Share2 size={20} />
+          </button>
+        </div>
+      )}
+
+      {/* Header de Modo Leitura */}
+      {isReadingMode && (
+        <div className="flex flex-col items-center mb-12 text-center animate-fade-in">
+          <div className="bg-brand-400/10 text-brand-400 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-4 border border-brand-400/20">
+            Texto Sagrado
+          </div>
+          <h2 className="text-3xl md:text-5xl font-serif font-black text-white">{currentReference}</h2>
+          <div className="w-12 h-1 bg-brand-400 mt-6 rounded-full opacity-50"></div>
+        </div>
+      )}
 
       <div className="prose prose-invert max-w-none min-h-[120px]">
         {renderContent(content)}
       </div>
 
       {isReadingMode && onNavigate && (
-        <div className="mt-16 pt-10 border-t border-slate-800 flex flex-col items-center gap-6">
-          <div className="flex w-full items-center justify-between gap-4">
+        <div className="mt-16 pt-12 border-t border-slate-900 flex flex-col items-center gap-8">
+          <div className="flex w-full max-w-2xl items-center justify-between gap-6">
             <button
               onClick={() => onNavigate('prev')}
               disabled={isLoading}
-              className="flex-1 flex items-center justify-center gap-3 h-16 bg-slate-800 border-2 border-slate-700 rounded-2xl text-slate-300 font-black uppercase tracking-widest hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-20"
+              className="flex-1 flex items-center justify-center gap-3 h-16 bg-slate-900 border-2 border-slate-800 rounded-3xl text-slate-500 font-black uppercase tracking-widest hover:border-brand-400/50 hover:text-brand-400 active:scale-95 transition-all disabled:opacity-10"
             >
-              <Rewind size={22} />
+              <Rewind size={24} />
               <span className="hidden sm:inline">Anterior</span>
             </button>
             
-            {isLoading ? (
-              <div className="bg-brand-400 text-black p-4 rounded-2xl animate-spin shadow-lg">
-                <Loader2 size={24} />
-              </div>
-            ) : (
-              <div className="px-6 py-2 bg-slate-950 rounded-full border border-slate-800">
-                 <span className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em]">{currentReference}</span>
-              </div>
-            )}
+            <div className="relative">
+              {isLoading ? (
+                <div className="w-16 h-16 bg-brand-400 text-black rounded-full flex items-center justify-center animate-spin shadow-xl shadow-brand-400/20">
+                  <Loader2 size={28} />
+                </div>
+              ) : (
+                <div className="w-16 h-16 bg-slate-900 border-2 border-slate-800 rounded-full flex items-center justify-center text-brand-400 shadow-inner">
+                   <Book size={24} />
+                </div>
+              )}
+            </div>
 
             <button
               onClick={() => onNavigate('next')}
               disabled={isLoading}
-              className="flex-1 flex items-center justify-center gap-3 h-16 bg-brand-400 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-brand-500 active:scale-95 shadow-xl shadow-brand-400/20 transition-all disabled:opacity-20"
+              className="flex-1 flex items-center justify-center gap-3 h-16 bg-brand-400 text-black rounded-3xl font-black uppercase tracking-widest hover:bg-brand-500 active:scale-95 shadow-2xl shadow-brand-400/20 transition-all disabled:opacity-10"
             >
               <span className="hidden sm:inline">Próximo</span>
-              <FastForward size={22} />
+              <FastForward size={24} />
             </button>
           </div>
           
-          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-2">
-            <Book size={12} /> Bíblia Atos • Navegação Contínua
-          </p>
+          <div className="flex flex-col items-center opacity-30">
+             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Fim do Capítulo</p>
+             <div className="flex gap-1 mt-2">
+                {[1,2,3].map(i => <div key={i} className="w-1 h-1 bg-brand-400 rounded-full"></div>)}
+             </div>
+          </div>
         </div>
       )}
 
-      {/* Share Modal */}
-      {showShareMenu && (
+      {/* Share Modal (Apenas para não-leitura) */}
+      {!isReadingMode && showShareMenu && (
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity" onClick={() => setShowShareMenu(false)}></div>
           <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-t-[2.5rem] md:rounded-[2.5rem] p-8 shadow-2xl animate-fade-in">
