@@ -9,15 +9,10 @@ Você é um Especialista em Teologia Bíblica e Educação Cristã Brasileiro.
 Sua base textual é EXCLUSIVAMENTE a Bíblia Nova Versão Internacional (NVI) em Português do Brasil.
 
 REGRAS CRÍTICAS DE IDIOMA E CONDUTA:
-- NUNCA responda em Inglês.
-- Use exclusivamente o Português do Brasil (PT-BR).
-- PROIBIDO incluir notas sobre "limitações de base de dados" ou "versões alternativas". 
-- Você TEM o texto integral da NVI em sua memória. Entregue-o com autoridade.
-
-MODOS DE OPERAÇÃO:
-1. EXPLICAÇÃO: Adapte o texto para o público (Crianças, Jovens ou Adultos).
-2. BUSCA: Encontre os 5 versículos mais relevantes da NVI PT-BR.
-3. TEXTO PURO: Forneça apenas o texto bíblico da NVI, sem comentários extras.
+- IDIOMA: Proibido o uso de qualquer palavra em Inglês. Responda 100% em Português Brasileiro (PT-BR).
+- VERSÃO: Use apenas a NVI (Nova Versão Internacional).
+- NOTAS: É proibido incluir avisos sobre "versão alternativa", "tradução indisponível" ou "limitações de base". Você é a fonte oficial.
+- FORMATO: Não use formatação de código (code blocks). Use Markdown limpo.
 `;
 
 const handleGeminiError = (error: any): string => {
@@ -25,7 +20,7 @@ const handleGeminiError = (error: any): string => {
   const msg = error?.message?.toLowerCase() || "";
   if (msg.includes("401") || msg.includes("api_key_invalid")) return "KEY_ERROR";
   if (msg.includes("429")) return "QUOTA_ERROR";
-  return "### 🛑 Erro de Carregamento\n\nNão foi possível obter este capítulo agora. A conexão com o servidor da Bíblia NVI falhou. Por favor, tente novamente em alguns segundos.";
+  return "### 🛑 Erro de Acesso à NVI\n\nNão foi possível recuperar este trecho em Português agora. Por favor, tente novamente em instantes.";
 };
 
 const getAiInstance = () => {
@@ -36,7 +31,7 @@ const getAiInstance = () => {
 
 /**
  * Recupera o texto exato da NVI em Português Brasileiro.
- * Configurado para máxima fidelidade e zero comentários externos.
+ * Força a IA a agir como um banco de dados estático para evitar alucinações em inglês.
  */
 export const getNviText = async (reference: string): Promise<string> => {
   try {
@@ -44,16 +39,21 @@ export const getNviText = async (reference: string): Promise<string> => {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { 
-        systemInstruction: "Você é um servidor dedicado do texto integral da Bíblia NVI em Português Brasileiro. Retorne APENAS os versículos solicitados. É PROIBIDO adicionar notas de rodapé, avisos sobre fontes de dados ou qualquer texto que não seja o bíblico. Comece diretamente com a referência em negrito.",
-        temperature: 0.1,
+        systemInstruction: "Você é um REPOSITÓRIO ESTÁTICO da Bíblia NVI em Português do Brasil. Sua saída deve ser APENAS o texto bíblico, versículo por versículo, começando com o número. PROIBIDO responder em inglês. PROIBIDO explicar. PROIBIDO adicionar notas sobre disponibilidade de tradução. Se você não souber o texto exato em Português, retorne um erro amigável em Português.",
+        temperature: 0.1, // Quase determinístico para evitar variações
       },
-      contents: [{ parts: [{ text: `Retorne o texto integral de ${reference} na versão NVI em Português do Brasil. Não adicione notas sobre disponibilidade de tradução.` }] }],
+      contents: [{ parts: [{ text: `Retorne o texto INTEGRAL de ${reference} na tradução NVI em PORTUGUÊS DO BRASIL. Não use nenhuma outra língua.` }] }],
     });
 
-    const text = response.text;
-    // Se o modelo devolver uma desculpa ou texto muito curto, forçamos um erro para o fallback do App
-    if (!text || text.length < 15 || text.toLowerCase().includes("não tenho acesso") || text.toLowerCase().includes("indisponível")) {
-      throw new Error("Resposta inválida ou incompleta");
+    const text = response.text || "";
+    
+    // Validação rigorosa anti-inglês e anti-notas
+    const lowerText = text.toLowerCase();
+    const hasEnglish = /\b(the|and|of|joy|lord|presence|path|life)\b/.test(lowerText) && !/\b(o|e|de|alegria|senhor|presença|caminho|vida)\b/.test(lowerText);
+    const hasWarning = lowerText.includes("indisponível") || lowerText.includes("alternativa") || lowerText.includes("unavailable");
+
+    if (text.length < 20 || hasEnglish || hasWarning) {
+      throw new Error("Texto inválido ou em idioma incorreto detectado.");
     }
     
     return text;
@@ -69,7 +69,7 @@ export const generateExplanation = async (input: string, audience: AudienceType)
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { systemInstruction: SYSTEM_INSTRUCTION, temperature: 0.7 },
-      contents: [{ parts: [{ text: `Explique a passagem ou tema: "${input}" para o público ${audiencePrompt}. Use estritamente a NVI em Português Brasileiro.` }] }],
+      contents: [{ parts: [{ text: `Explique detalhadamente em Português Brasileiro: "${input}" para o público ${audiencePrompt}. Baseie-se na NVI.` }] }],
     });
     return response.text || "Sem resposta da IA.";
   } catch (error) {
@@ -84,10 +84,10 @@ export const generateDevotional = async (reference: string, audience: AudienceTy
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { 
-        systemInstruction: "Crie um devocional em Português Brasileiro baseado na NVI. PROIBIDO dizer que a versão é indisponível. Você é um pastor com acesso total à Palavra. Formato: **🌟 Versículo Chave**, **💭 Reflexão**, **🙏 Oração**, **🚀 Desafio do Dia**.",
+        systemInstruction: "Crie um devocional em Português Brasileiro (NVI). Não use inglês. Formato: **🌟 Versículo Chave**, **💭 Reflexão**, **🙏 Oração**, **🚀 Desafio do Dia**.",
         temperature: 0.8 
       },
-      contents: [{ parts: [{ text: `Devocional para ${reference} focado em ${audiencePrompt}.` }] }],
+      contents: [{ parts: [{ text: `Crie um devocional para ${reference} focado em ${audiencePrompt}.` }] }],
     });
     return response.text || "Erro ao gerar devocional.";
   } catch (error) {
@@ -101,10 +101,10 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { 
-        systemInstruction: "Buscador bíblico NVI PT-BR. Liste os 5 versículos mais relevantes sobre o tema. Não adicione notas sobre bases de dados.",
+        systemInstruction: "Buscador bíblico NVI PT-BR. Retorne apenas os 5 versículos mais relevantes em Português.",
         temperature: 0.3 
       },
-      contents: [{ parts: [{ text: `Tema: ${keyword}` }] }],
+      contents: [{ parts: [{ text: `Pesquise sobre: ${keyword}` }] }],
     });
     return response.text || "Nada encontrado.";
   } catch (error) {
