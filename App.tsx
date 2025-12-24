@@ -13,7 +13,7 @@ import DevotionalView from './components/DevotionalView';
 import { 
   Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, 
   Search, GraduationCap, CalendarDays, Library, Coffee, 
-  Loader2, Key, Menu, MoreHorizontal 
+  Loader2, Key, MoreHorizontal 
 } from 'lucide-react';
 
 const App: React.FC = () => {
