@@ -40,7 +40,6 @@ const MASTER_THEMES: DevotionalSuggestion[] = [
   { theme: "Graça", ref: "Efésios 2:8", icon: Gift, color: "from-rose-900/40 to-red-900/40" },
   { theme: "Reflexão", ref: "Salmos 1:2", icon: Moon, color: "from-slate-900 to-black" },
   { theme: "Escritura", ref: "2 Timóteo 3:16", icon: PenTool, color: "from-amber-900/40 to-orange-900/40" },
-  // Fixed: removed duplicate 'icon' property on the line below
   { theme: "Alegria", ref: "Salmos 16:11", icon: Smile, color: "from-yellow-900/40 to-orange-900/40" },
   { theme: "Sabedoria", ref: "Tiago 1:5", icon: BookOpen, color: "from-indigo-900/40 to-blue-900/40" },
   { theme: "Amor", ref: "1 Coríntios 13:13", icon: Heart, color: "from-red-900/40 to-rose-900/40" },
@@ -55,19 +54,27 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
   const [selectedRef, setSelectedRef] = useState('Salmos 23');
   const [showSelector, setShowSelector] = useState(false);
 
-  // Calcula os 5 temas do dia baseados na data atual
+  // Calcula os 5 temas do dia baseados na data atual com rotação não-sequencial
   const dailyThemes = useMemo(() => {
     const now = new Date();
     const start = new Date(now.getFullYear(), 0, 0);
     const diff = (now.getTime() - start.getTime()) + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000);
     const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
     
-    const startIndex = (dayOfYear * 5) % MASTER_THEMES.length;
-    let selected = MASTER_THEMES.slice(startIndex, startIndex + 5);
+    const selected: DevotionalSuggestion[] = [];
+    const total = MASTER_THEMES.length;
     
-    // Se não houver 5 itens (fim da lista), pega do começo
-    if (selected.length < 5) {
-      selected = [...selected, ...MASTER_THEMES.slice(0, 5 - selected.length)];
+    // Configuração para rotação pseudo-aleatória determinística:
+    // DAY_STEP (7): Garante que a "janela" inicial mude a cada dia de forma não linear.
+    // ITEM_STEP (13): Garante que os itens dentro do mesmo dia não sejam vizinhos imediatos na lista.
+    // Ambos são primos relativos ao tamanho da lista (30) para maximizar a distribuição.
+    const DAY_STEP = 7; 
+    const ITEM_STEP = 13; 
+
+    for (let i = 0; i < 5; i++) {
+      // Fórmula: (Salto do Dia + Salto do Item) % Total
+      const index = ((dayOfYear * DAY_STEP) + (i * ITEM_STEP)) % total;
+      selected.push(MASTER_THEMES[index]);
     }
     
     return selected;

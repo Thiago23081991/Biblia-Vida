@@ -1,4 +1,6 @@
 
+import { bibleBooks } from './bibleBooks';
+
 export interface StudyDay {
   day: number;
   reference: string;
@@ -18,7 +20,6 @@ export interface ThematicPlan {
 
 // Funções para gerar referências lógicas para planos longos
 const generateCanonicalPlan = (days: number): StudyDay[] => {
-  // Simplificação: 1189 capítulos divididos por X dias
   const totalChapters = 1189;
   const chaptersPerDay = Math.ceil(totalChapters / days);
   
@@ -29,8 +30,133 @@ const generateCanonicalPlan = (days: number): StudyDay[] => {
   }));
 };
 
+// Gerador Inteligente do Plano Anual
+const generateOneYearBiblePlan = (): StudyDay[] => {
+  const allChapters: { book: string; chapter: number; section: string }[] = [];
+
+  // Achatando a Bíblia em uma lista única de capítulos com metadados
+  bibleBooks.forEach(book => {
+    let section = 'Antigo Testamento';
+    if (['Gênesis', 'Êxodo', 'Levítico', 'Números', 'Deuteronômio'].includes(book.name)) section = 'O Pentateuco (Lei)';
+    else if (['Josué', 'Juízes', 'Rute', '1 Samuel', '2 Samuel', '1 Reis', '2 Reis', '1 Crônicas', '2 Crônicas', 'Esdras', 'Neemias', 'Ester'].includes(book.name)) section = 'Livros Históricos';
+    else if (['Jó', 'Salmos', 'Provérbios', 'Eclesiastes', 'Cânticos'].includes(book.name)) section = 'Livros Poéticos';
+    else if (['Isaías', 'Jeremias', 'Lamentações', 'Ezequiel', 'Daniel'].includes(book.name)) section = 'Profetas Maiores';
+    else if (['Oseias', 'Joel', 'Amós', 'Obadias', 'Jonas', 'Miqueias', 'Naum', 'Habacuque', 'Sofonias', 'Ageu', 'Zacarias', 'Malaquias'].includes(book.name)) section = 'Profetas Menores';
+    else if (['Mateus', 'Marcos', 'Lucas', 'João'].includes(book.name)) section = 'Os Evangelhos';
+    else if (book.name === 'Atos') section = 'História da Igreja';
+    else if (['Romanos', '1 Coríntios', '2 Coríntios', 'Gálatas', 'Efésios', 'Filipenses', 'Colossenses', '1 Tessalonicenses', '2 Tessalonicenses', '1 Timóteo', '2 Timóteo', 'Tito', 'Filemom'].includes(book.name)) section = 'Cartas de Paulo';
+    else if (book.name === 'Apocalipse') section = 'Revelação Final';
+    else section = 'Cartas Gerais';
+
+    for (let c = 1; c <= book.chapters; c++) {
+      allChapters.push({ book: book.name, chapter: c, section });
+    }
+  });
+
+  const totalDays = 365;
+  const plan: StudyDay[] = [];
+  let currentChapterIndex = 0;
+
+  for (let day = 1; day <= totalDays; day++) {
+    // Recalcula quantos capítulos faltam dividir pelos dias restantes para manter a média precisa
+    const chaptersLeft = allChapters.length - currentChapterIndex;
+    const daysLeft = totalDays - day + 1;
+    // Garante pelo menos 1 capítulo, arredonda para cima para terminar a tempo
+    const chaptersToday = Math.max(1, Math.ceil(chaptersLeft / daysLeft));
+
+    if (currentChapterIndex >= allChapters.length) break;
+
+    const start = allChapters[currentChapterIndex];
+    // Garante que não estoure o array
+    const endIndex = Math.min(currentChapterIndex + chaptersToday - 1, allChapters.length - 1);
+    const end = allChapters[endIndex];
+
+    let ref = '';
+    if (start.book === end.book) {
+        ref = start.chapter === end.chapter
+            ? `${start.book} ${start.chapter}`
+            : `${start.book} ${start.chapter}-${end.chapter}`;
+    } else {
+        // Transição de livros (ex: 2 Crônicas 36 - Esdras 2)
+        ref = `${start.book} ${start.chapter} - ${end.book} ${end.chapter}`;
+    }
+
+    plan.push({
+        day,
+        reference: ref,
+        focus: `${start.section} • ${start.book}`
+    });
+
+    currentChapterIndex += chaptersToday;
+  }
+
+  return plan;
+};
+
 export const thematicPlans: ThematicPlan[] = [
   // --- DESAFIOS DE TEMPO ---
+  {
+    id: '7-dias-hardcore',
+    title: '7 Dias: Bíblia Toda',
+    description: 'Desafio extremo APENAS para os fortes. Leia a Bíblia inteira em uma semana. Média de 170 capítulos por dia.',
+    duration: 7,
+    category: 'Desafios',
+    icon: '⚡',
+    color: 'from-red-600 to-slate-900',
+    days: [
+      { day: 1, reference: 'Gênesis 1 - Deuteronômio 34', focus: 'O Pentateuco Completo (187 caps)' },
+      { day: 2, reference: 'Josué 1 - 2 Reis 25', focus: 'Toda a História de Israel (151 caps)' },
+      { day: 3, reference: '1 Crônicas 1 - Jó 42', focus: 'Pós-Exílio e Sofrimento (140 caps)' },
+      { day: 4, reference: 'Salmos 1 - Cânticos 8', focus: 'Sabedoria e Poesia (201 caps)' },
+      { day: 5, reference: 'Isaías 1 - Daniel 12', focus: 'Os Profetas Maiores (183 caps)' },
+      { day: 6, reference: 'Oseias 1 - João 21', focus: 'Profetas Menores e 4 Evangelhos (156 caps)' },
+      { day: 7, reference: 'Atos 1 - Apocalipse 22', focus: 'Igreja, Cartas e Fim dos Tempos (171 caps)' },
+    ]
+  },
+  {
+    id: '31-dias-proverbios',
+    title: '31 Dias de Sabedoria',
+    description: 'Um capítulo de Provérbios por dia. Transforme sua mente com a sabedoria de Salomão.',
+    duration: 31,
+    category: 'Desafios',
+    icon: '💎',
+    color: 'from-cyan-500 to-blue-600',
+    days: Array.from({ length: 31 }, (_, i) => ({
+      day: i + 1,
+      reference: `Provérbios ${i + 1}`,
+      focus: `Sabedoria para o dia ${i + 1}`
+    }))
+  },
+  {
+    id: '21-dias-joao',
+    title: '21 Dias em João',
+    description: 'Conheça o coração de Jesus através do discípulo amado. Um capítulo por dia para criar intimidade.',
+    duration: 21,
+    category: 'Desafios',
+    icon: '🦅',
+    color: 'from-indigo-500 to-violet-700',
+    days: Array.from({ length: 21 }, (_, i) => ({
+      day: i + 1,
+      reference: `João ${i + 1}`,
+      focus: `O Verbo Vivo: Capítulo ${i + 1}`
+    }))
+  },
+  {
+    id: 'maratona-curtos',
+    title: '5 Dias: 5 Livros',
+    description: 'Uma sensação de conquista rápida. Leia os 5 livros da Bíblia que possuem apenas 1 capítulo.',
+    duration: 5,
+    category: 'Desafios',
+    icon: '🏃',
+    color: 'from-green-500 to-emerald-700',
+    days: [
+       { day: 1, reference: 'Obadias 1', focus: 'Justiça Divina (Obadias)' },
+       { day: 2, reference: 'Filemom 1', focus: 'Perdão e Reconciliação (Filemom)' },
+       { day: 3, reference: '2 João 1', focus: 'A Verdade e o Amor (2 João)' },
+       { day: 4, reference: '3 João 1', focus: 'Hospitalidade Cristã (3 João)' },
+       { day: 5, reference: 'Judas 1', focus: 'Batalha pela Fé (Judas)' },
+    ]
+  },
   {
     id: '7-dias-fundamentos',
     title: '7 Dias: Fundamentos',
@@ -85,16 +211,231 @@ export const thematicPlans: ThematicPlan[] = [
   },
   {
     id: '1-ano-atos',
-    title: '1 Ano: Bíblia Toda',
-    description: 'O compromisso máximo. Leia a Bíblia inteira (1.189 capítulos) em 365 dias.',
+    title: 'Jornada Bíblica Anual',
+    description: 'O desafio supremo. Leia a Bíblia inteira (1.189 capítulos) em 365 dias com estrutura cronológica e teológica.',
     duration: 365,
     category: 'Desafios',
     icon: '👑',
     color: 'from-brand-600 to-black',
-    days: generateCanonicalPlan(365).map(d => ({ ...d, focus: 'Alimento Diário para a Alma' }))
+    days: generateOneYearBiblePlan()
   },
 
-  // --- PLANOS TEMÁTICOS ---
+  // --- DESAFIOS PARA JOVENS ---
+  {
+    id: 'jovem-identidade',
+    title: '14 Dias: Identidade Radical',
+    description: 'Descubra quem você é em Cristo, vença a pressão cultural e encontre seu propósito divino.',
+    duration: 14,
+    category: 'Jovens',
+    icon: '🧬',
+    color: 'from-fuchsia-600 to-cyan-600',
+    days: [
+      { day: 1, reference: 'Daniel 1', focus: 'Fidelidade sob Pressão' },
+      { day: 2, reference: '1 Timóteo 4:11-16', focus: 'Ninguém despreze tua mocidade' },
+      { day: 3, reference: 'Eclesiastes 11:9-12:7', focus: 'Alegria com Juízo e Legado' },
+      { day: 4, reference: 'Salmos 119:1-16', focus: 'Como purificar o caminho?' },
+      { day: 5, reference: 'Gênesis 39', focus: 'Integridade: Fugindo do Mal' },
+      { day: 6, reference: '1 Samuel 17', focus: 'Derrubando Gigantes' },
+      { day: 7, reference: 'Jeremias 1:4-10', focus: 'Chamado desde o Ventre' },
+      { day: 8, reference: 'Romanos 12:1-2', focus: 'Não se amolde ao padrão' },
+      { day: 9, reference: 'Gálatas 5:13-26', focus: 'Liberdade vs Libertinagem' },
+      { day: 10, reference: 'Efésios 6:10-20', focus: 'A Batalha é Espiritual' },
+      { day: 11, reference: 'Mateus 6:25-34', focus: 'Ansiedade e Futuro' },
+      { day: 12, reference: '1 Coríntios 6:12-20', focus: 'Seu corpo é Templo' },
+      { day: 13, reference: '2 Coríntios 5:17-21', focus: 'Embaixadores de Cristo' },
+      { day: 14, reference: 'Apocalipse 3:14-22', focus: 'Vencendo a Mornidão' },
+    ]
+  },
+  {
+    id: 'jovem-pureza',
+    title: '7 Dias: Amor & Pureza',
+    description: 'Um guia bíblico honesto sobre relacionamentos, sentimentos e santidade para a juventude.',
+    duration: 7,
+    category: 'Jovens',
+    icon: '❤️‍🔥',
+    color: 'from-rose-500 to-orange-500',
+    days: [
+      { day: 1, reference: 'Cânticos 2', focus: 'O Despertar do Amor' },
+      { day: 2, reference: '1 Tessalonicenses 4:3-8', focus: 'A Vontade de Deus: Santificação' },
+      { day: 3, reference: '2 Samuel 11', focus: 'Aprendendo com o Erro de Davi' },
+      { day: 4, reference: 'Provérbios 4:23-27', focus: 'Guarda o teu Coração' },
+      { day: 5, reference: '1 Coríntios 13', focus: 'O Que é o Amor Real?' },
+      { day: 6, reference: '2 Coríntios 6:14-18', focus: 'Jugo Desigual' },
+      { day: 7, reference: 'Efésios 5:1-4', focus: 'Imitadores de Deus' },
+    ]
+  },
+  {
+    id: 'jovem-digital',
+    title: 'Detox Digital & Autoimagem',
+    description: 'Como lidar com redes sociais, comparação e encontrar sua validação apenas em Deus.',
+    duration: 5,
+    category: 'Jovens',
+    icon: '🤳',
+    color: 'from-cyan-500 to-blue-600',
+    days: [
+      { day: 1, reference: 'Salmos 139:1-14', focus: 'Assombrosamente Formado' },
+      { day: 2, reference: 'Gálatas 1:10', focus: 'Aprovação de Homens ou de Deus?' },
+      { day: 3, reference: 'Mateus 6:1-6', focus: 'Vida Secreta vs Vida Pública' },
+      { day: 4, reference: 'Filipenses 4:8', focus: 'O Filtro da Mente' },
+      { day: 5, reference: 'Provérbios 4:23', focus: 'Sobre tudo, guarda teu coração' },
+    ]
+  },
+  {
+    id: 'jovem-amizades',
+    title: 'Amizades & Influência',
+    description: 'A sabedoria bíblica para escolher amigos que te aproximam de Deus e lidar com a pressão.',
+    duration: 5,
+    category: 'Jovens',
+    icon: '🤝',
+    color: 'from-yellow-400 to-orange-600',
+    days: [
+      { day: 1, reference: '1 Samuel 18:1-5', focus: 'Aliança de Amizade (Davi e Jônatas)' },
+      { day: 2, reference: 'Provérbios 13:20', focus: 'Quem anda com sábios...' },
+      { day: 3, reference: '1 Coríntios 15:33', focus: 'Más companhias corrompem' },
+      { day: 4, reference: 'Provérbios 27:17', focus: 'Ferro afia ferro' },
+      { day: 5, reference: '2 Coríntios 6:14-18', focus: 'Jugo Desigual e Santidade' },
+    ]
+  },
+  {
+    id: 'jovem-proposito',
+    title: 'Chamado & Propósito',
+    description: 'Você não é um acidente. Descubra como Deus quer usar sua vida para marcar esta geração.',
+    duration: 5,
+    category: 'Jovens',
+    icon: '🎯',
+    color: 'from-violet-500 to-purple-800',
+    days: [
+      { day: 1, reference: 'Jeremias 29:11-13', focus: 'Pensamentos de Paz e Futuro' },
+      { day: 2, reference: 'Ester 4:10-17', focus: 'Para um tempo como este' },
+      { day: 3, reference: 'Mateus 28:16-20', focus: 'A Grande Comissão (Missão Global)' },
+      { day: 4, reference: '1 Coríntios 12:12-27', focus: 'Seu lugar no Corpo de Cristo' },
+      { day: 5, reference: 'Colossenses 3:23-24', focus: 'Fazendo tudo para o Senhor' },
+    ]
+  },
+
+  // --- OUTROS PLANOS ---
+  
+  // 1. Mulheres na Bíblia
+  {
+    id: 'mulheres-biblia',
+    title: 'Mulheres de Fé',
+    description: 'Conheça a história e o legado das mulheres que moldaram a narrativa bíblica com coragem e devoção.',
+    duration: 7,
+    category: 'Personagens',
+    icon: '🌸',
+    color: 'from-pink-500 to-rose-700',
+    days: [
+      { day: 1, reference: 'Rute 1', focus: 'Lealdade Inabalável (Rute)' },
+      { day: 2, reference: 'Ester 4', focus: 'Coragem para Interceder (Ester)' },
+      { day: 3, reference: '1 Samuel 1', focus: 'O Poder da Oração (Ana)' },
+      { day: 4, reference: 'Lucas 1:26-56', focus: 'Disponibilidade para Deus (Maria)' },
+      { day: 5, reference: 'João 20:1-18', focus: 'Testemunha da Ressurreição (Madalena)' },
+      { day: 6, reference: 'Atos 16:11-15', focus: 'Liderança e Hospitalidade (Lídia)' },
+      { day: 7, reference: 'Provérbios 31:10-31', focus: 'A Mulher Sábia' },
+    ]
+  },
+
+  // 2. Profetas do Antigo Testamento
+  {
+    id: 'profetas-vt',
+    title: 'A Voz dos Profetas',
+    description: 'Os mensageiros de Deus que confrontaram reis e anunciaram o Messias no Antigo Testamento.',
+    duration: 7,
+    category: 'Personagens',
+    icon: '📜',
+    color: 'from-orange-600 to-amber-800',
+    days: [
+      { day: 1, reference: '1 Reis 18', focus: 'Elias e o Fogo de Deus' },
+      { day: 2, reference: 'Isaías 6', focus: 'O Chamado de Isaías' },
+      { day: 3, reference: 'Jeremias 1', focus: 'Conhecido Antes de Nascer' },
+      { day: 4, reference: 'Ezequiel 37', focus: 'O Vale de Ossos Secos' },
+      { day: 5, reference: 'Daniel 6', focus: 'Fidelidade na Provação' },
+      { day: 6, reference: 'Oséias 3', focus: 'O Amor Incondicional de Deus' },
+      { day: 7, reference: 'Malaquias 4', focus: 'A Promessa do Messias' },
+    ]
+  },
+
+  // 3. Milagres de Jesus
+  {
+    id: 'milagres-jesus',
+    title: 'O Poder de Jesus',
+    description: 'Uma jornada de 7 dias pelos sinais e maravilhas que revelaram a divindade e a compaixão de Cristo.',
+    duration: 7,
+    category: 'Doutrina',
+    icon: '✨',
+    color: 'from-cyan-500 to-blue-700',
+    days: [
+      { day: 1, reference: 'João 2:1-11', focus: 'Água em Vinho: Alegria' },
+      { day: 2, reference: 'Marcos 4:35-41', focus: 'Acalmando a Tempestade: Paz' },
+      { day: 3, reference: 'Marcos 5:21-43', focus: 'A Filha de Jairo: Vida' },
+      { day: 4, reference: 'João 6:1-15', focus: 'Multiplicação: Provisão' },
+      { day: 5, reference: 'João 9', focus: 'Cura do Cego: Visão Espiritual' },
+      { day: 6, reference: 'João 11', focus: 'Lázaro: Ressurreição' },
+      { day: 7, reference: 'Lucas 24:1-12', focus: 'O Túmulo Vazio: O Maior Milagre' },
+    ]
+  },
+
+  // 4. Intensidade na Oração
+  {
+    id: 'intensidade-oracao',
+    title: 'Intensidade na Oração',
+    description: '7 dias para transformar sua vida de oração com persistência, ousadia e fé inabalável.',
+    duration: 7,
+    category: 'Vida Cristã',
+    icon: '🔔',
+    color: 'from-violet-600 to-fuchsia-900',
+    days: [
+      { day: 1, reference: '1 Samuel 1', focus: 'O Clamor da Alma (Ana)' },
+      { day: 2, reference: 'Lucas 18:1-8', focus: 'A Parábola da Persistência' },
+      { day: 3, reference: 'Tiago 5:13-18', focus: 'A Oração Eficaz' },
+      { day: 4, reference: 'Mateus 26:36-46', focus: 'Agonia e Rendição (Getsêmani)' },
+      { day: 5, reference: 'Daniel 9', focus: 'Jejum e Intercessão' },
+      { day: 6, reference: 'Efésios 6:10-20', focus: 'Armadura e Oração no Espírito' },
+      { day: 7, reference: 'João 17', focus: 'A Grande Oração Sacerdotal' },
+    ]
+  },
+
+  // 5. Cartas Paulinas
+  {
+    id: 'cartas-paulo',
+    title: 'Sabedoria Paulina',
+    description: 'Os ensinamentos fundamentais do Apóstolo Paulo para fortalecer a igreja e a vida cristã.',
+    duration: 7,
+    category: 'Doutrina',
+    icon: '🏛️',
+    color: 'from-slate-500 to-indigo-700',
+    days: [
+      { day: 1, reference: 'Romanos 8', focus: 'Nenhuma Condenação' },
+      { day: 2, reference: '1 Coríntios 13', focus: 'A Supremacia do Amor' },
+      { day: 3, reference: 'Gálatas 5', focus: 'Liberdade e o Fruto do Espírito' },
+      { day: 4, reference: 'Efésios 6', focus: 'A Armadura de Deus' },
+      { day: 5, reference: 'Filipenses 2', focus: 'A Humildade de Cristo' },
+      { day: 6, reference: 'Colossenses 3', focus: 'Pensando nas Coisas do Alto' },
+      { day: 7, reference: '1 Tessalonicenses 4', focus: 'A Esperança Futura' },
+    ]
+  },
+
+  // 6. Apocalipse
+  {
+    id: 'apocalipse-intro',
+    title: 'Revelação Final',
+    description: 'Uma introdução à esperança gloriosa e ao triunfo final de Cristo narrados no Apocalipse.',
+    duration: 7,
+    category: 'Doutrina',
+    icon: '🎺',
+    color: 'from-violet-600 to-purple-900',
+    days: [
+      { day: 1, reference: 'Apocalipse 1', focus: 'A Visão do Cristo Glorificado' },
+      { day: 2, reference: 'Apocalipse 2', focus: 'Cartas às Igrejas (Parte 1)' },
+      { day: 3, reference: 'Apocalipse 4', focus: 'A Adoração no Trono' },
+      { day: 4, reference: 'Apocalipse 5', focus: 'O Leão e o Cordeiro' },
+      { day: 5, reference: 'Apocalipse 12', focus: 'A Mulher e o Dragão' },
+      { day: 6, reference: 'Apocalipse 19', focus: 'As Bodas do Cordeiro' },
+      { day: 7, reference: 'Apocalipse 21', focus: 'Novos Céus e Nova Terra' },
+    ]
+  },
+
+  // --- PLANOS ORIGINAIS ---
   {
     id: 'novos-convertidos',
     title: 'Primeiros Passos',

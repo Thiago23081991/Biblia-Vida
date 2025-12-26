@@ -69,11 +69,11 @@ const App: React.FC = () => {
   const processResponse = (response: string) => {
     if (response === "KEY_ERROR") {
       setHasApiKey(false);
-      return "⚠️ Chave de API inválida ou expirada. Ative-a novamente.";
+      return "### 🔑 Acesso Necessário\n\nSua chave de API parece inválida ou expirou. Por favor, clique no botão **Ativar IA Agora** acima para reconectar sua conta Google e continuar usando a Bíblia Atos.";
     }
     if (response === "QUOTA_ERROR") {
       setQuotaWaitTime(60);
-      return "⏳ Limite de uso atingido. O sistema de IA está respirando, tente em 60 segundos.";
+      return "### ⏳ Pausa para Café\n\nO limite de uso gratuito foi atingido temporariamente. A inteligência artificial precisa de **60 segundos** para recarregar. Agradecemos sua paciência enquanto preparamos a próxima resposta!";
     }
     return response;
   };
@@ -103,7 +103,7 @@ const App: React.FC = () => {
       }
       setTimeout(() => document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
     } catch (error) {
-      setResult("Erro ao gerar explicação. Tente novamente.");
+      setResult("### 🛑 Erro inesperado\n\nOcorreu um erro ao tentar gerar a explicação. Por favor, tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ const App: React.FC = () => {
       }
       setTimeout(() => document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
     } catch (error) {
-      setResult("Erro ao gerar devocional. Tente novamente.");
+      setResult("### 🛑 Erro inesperado\n\nOcorreu um erro ao tentar gerar o devocional. Por favor, tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -133,7 +133,7 @@ const App: React.FC = () => {
 
   const handleReadBible = async (forcedInput?: string) => {
     if (!hasApiKey) {
-      setResult("⚠️ Ative sua IA para ler a Bíblia NVI em Português.");
+      setResult("### ⚠️ Acesso Restrito\n\nPara ler a Bíblia NVI em Português na íntegra, é necessário ativar sua chave de IA gratuita no botão acima.");
       return;
     }
     let inputToUse = forcedInput || (inputMode === 'bible' ? pickerText : inputText);
@@ -149,7 +149,7 @@ const App: React.FC = () => {
       setResult(finalResponse);
       setTimeout(() => document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
     } catch (error) {
-      setResult("🛑 Erro ao carregar texto bíblico.");
+      setResult("### 🛑 Erro de Leitura\n\nNão foi possível carregar o texto bíblico neste momento. Verifique sua conexão e tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -194,7 +194,7 @@ const App: React.FC = () => {
       setResult(finalResponse);
       setTimeout(() => document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
     } catch (error) {
-      setResult("Erro na busca.");
+      setResult("### 🔍 Erro na Busca\n\nNão conseguimos realizar a pesquisa no momento. Tente reformular seu termo de busca.");
     } finally {
       setLoading(false);
     }

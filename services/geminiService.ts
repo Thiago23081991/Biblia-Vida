@@ -18,10 +18,25 @@ DIRETRIZES INVIOLÁVEIS:
 
 const handleGeminiError = (error: any): string => {
   console.error("Gemini Error:", error);
-  const msg = error?.message?.toLowerCase() || "";
-  if (msg.includes("401") || msg.includes("api_key_invalid")) return "KEY_ERROR";
-  if (msg.includes("429")) return "QUOTA_ERROR";
-  return "### 🛑 Erro de Conexão\n\nNão foi possível acessar a base NVI no momento. Verifique sua conexão e tente novamente.";
+  const msg = (error?.message || error?.toString() || "").toLowerCase();
+  
+  // Erros de Autenticação (401, API Key inválida)
+  if (msg.includes("401") || msg.includes("api_key") || msg.includes("invalid authentication")) {
+    return "KEY_ERROR";
+  }
+  
+  // Erros de Cota (429, Resource Exhausted)
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("resource exhausted")) {
+    return "QUOTA_ERROR";
+  }
+
+  // Erros de Servidor/Sobrecarga (503, 500)
+  if (msg.includes("503") || msg.includes("overloaded") || msg.includes("internal")) {
+    return "### 🐢 IA Sobrecarregada\n\nNossos servidores estão recebendo muitos pedidos no momento. A IA está respirando fundo. Por favor, aguarde alguns segundos e tente novamente.";
+  }
+
+  // Erros Genéricos
+  return "### 🛑 Algo deu errado\n\nNão foi possível processar sua solicitação neste momento. Verifique sua conexão com a internet ou tente novamente em instantes.";
 };
 
 const getAiInstance = () => {
