@@ -95,14 +95,38 @@ export const generateExplanation = async (input: string, audience: AudienceType)
 export const generateDevotional = async (reference: string, audience: AudienceType): Promise<string> => {
   try {
     const ai = getAiInstance();
-    const audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
+    
+    let systemInstruction = "Crie um devocional poderoso em Português Brasileiro baseado na NVI. Formato: **🌟 Versículo Chave**, **💭 Reflexão**, **🙏 Oração**, **🚀 Desafio do Dia**.";
+    
+    // Lógica personalizada para crianças
+    if (audience === AudienceType.CHILD) {
+      systemInstruction = `
+        Você é um professor de escola dominical super divertido e carinhoso! 🛑 USE APENAS PORTUGUÊS DO BRASIL.
+        Crie um devocional LÚDICO, CURTO e INTERATIVO baseado na NVI para crianças de 4 a 8 anos.
+        
+        Diretrizes Visuais e Lúdicas:
+        1. Use linguagem muito simples, animada e carinhosa.
+        2. Use MUITOS Emojis coloridos (🎈, 🧸, 🌟, 🦁).
+        3. Use exemplos concretos (brinquedos, animais, família, escola) para explicar conceitos abstratos.
+        
+        Estrutura Obrigatória:
+        **🌟 Versículo Mágico:** (Escolha a parte mais fácil do versículo na NVI para a criança decorar)
+        **💭 A História:** (Explicação curta, usando uma metáfora divertida ou comparação visual)
+        **❓ Perguntinha:** (Uma pergunta interativa direta para a criança responder agora. Ex: "Você já sentiu medo? Qual animal faz roar?")
+        **🙏 Oraçãozinha:** (Frases curtas e fáceis para a criança repetir)
+        **🚀 Missão Divertida:** (Um desafio prático e simples. Ex: "Dê um abraço bem forte em alguém", "Faça um desenho", "Arrume seus brinquedos")
+      `;
+    }
+
+    const audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS PEQUENAS (4-8 anos)" : audience === AudienceType.TEEN ? "ADOLESCENTES (Linguagem conectada e moderna)" : "ADULTOS (Profundidade teológica)";
+
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { 
-        systemInstruction: "Crie um devocional poderoso em Português Brasileiro baseado na NVI. Formato: **🌟 Versículo Chave**, **💭 Reflexão**, **🙏 Oração**, **🚀 Desafio do Dia**.",
-        temperature: 0.8 
+        systemInstruction: systemInstruction,
+        temperature: audience === AudienceType.CHILD ? 0.9 : 0.8, // Mais criatividade para crianças
       },
-      contents: [{ parts: [{ text: `Devocional para ${reference} focado em ${audiencePrompt}.` }] }],
+      contents: [{ parts: [{ text: `Gere um devocional sobre ${reference} focado especificamente em ${audiencePrompt}.` }] }],
     });
     return response.text || "Erro ao gerar devocional.";
   } catch (error) {

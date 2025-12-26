@@ -1,12 +1,14 @@
 
 import React, { useState, useMemo } from 'react';
 import BibleSelector from './BibleSelector';
-import { Coffee, Sparkles, BookOpen, Loader2, Quote, ChevronDown, ChevronUp, RefreshCw, Heart, Shield, Sun, Target, Wind, Anchor, Zap, Flame, Cloud, Compass, Key, Mountain, Star, Umbrella, Award, Bell, Briefcase, Camera, Eye, Gift, Moon, PenTool, Smile } from 'lucide-react';
+import { AudienceType } from '../types';
+import { Coffee, Sparkles, BookOpen, Loader2, Quote, ChevronDown, ChevronUp, RefreshCw, Heart, Shield, Sun, Target, Wind, Anchor, Zap, Flame, Cloud, Compass, Key, Mountain, Star, Umbrella, Award, Bell, Briefcase, Camera, Eye, Gift, Moon, PenTool, Smile, Ghost, Crown, Music, Home } from 'lucide-react';
 
 interface DevotionalViewProps {
   onGenerate: (ref: string) => void;
   onRead: (ref: string) => void;
   isLoading: boolean;
+  audience: AudienceType;
 }
 
 interface DevotionalSuggestion {
@@ -16,7 +18,7 @@ interface DevotionalSuggestion {
   color: string;
 }
 
-// Banco de dados expandido para rotação diária
+// Banco de dados expandido para rotação diária (Adultos/Jovens)
 const MASTER_THEMES: DevotionalSuggestion[] = [
   { theme: "Paz", ref: "Filipenses 4:6-7", icon: Wind, color: "from-blue-900/40 to-cyan-900/40" },
   { theme: "Identidade", ref: "1 Pedro 2:9", icon: Heart, color: "from-rose-900/40 to-pink-900/40" },
@@ -50,9 +52,31 @@ const MASTER_THEMES: DevotionalSuggestion[] = [
   { theme: "Bondade", ref: "Salmos 145:9", icon: Heart, color: "from-amber-900/40 to-yellow-900/40" },
 ];
 
-const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isLoading }) => {
+// Temas Lúdicos para Crianças
+const KIDS_THEMES: DevotionalSuggestion[] = [
+  { theme: "Super Herói", ref: "Filipenses 4:13", icon: Shield, color: "from-red-500/40 to-orange-500/40" },
+  { theme: "Amigão", ref: "João 15:15", icon: Smile, color: "from-yellow-400/40 to-amber-500/40" },
+  { theme: "Xô Medo!", ref: "Salmos 56:3", icon: Ghost, color: "from-purple-500/40 to-indigo-500/40" },
+  { theme: "Criação", ref: "Gênesis 1:1", icon: Sun, color: "from-green-500/40 to-emerald-500/40" },
+  { theme: "Presente", ref: "João 3:16", icon: Gift, color: "from-pink-500/40 to-rose-500/40" },
+  { theme: "Rei Jesus", ref: "Apocalipse 19:16", icon: Crown, color: "from-amber-300/40 to-yellow-600/40" },
+  { theme: "Música", ref: "Salmos 150", icon: Music, color: "from-blue-400/40 to-cyan-500/40" },
+  { theme: "Família", ref: "Êxodo 20:12", icon: Home, color: "from-orange-400/40 to-red-400/40" },
+  { theme: "Perdão", ref: "Efésios 4:32", icon: Heart, color: "from-red-500/40 to-rose-500/40" },
+  { theme: "Coragem", ref: "Daniel 6", icon: Flame, color: "from-orange-500/40 to-red-600/40" },
+  { theme: "Ovelhinha", ref: "Salmos 23", icon: Cloud, color: "from-slate-300/40 to-slate-500/40" },
+  { theme: "Brilhar", ref: "Mateus 5:14", icon: Star, color: "from-yellow-300/40 to-amber-400/40" },
+  { theme: "Amor", ref: "1 João 4:8", icon: Heart, color: "from-pink-600/40 to-rose-600/40" },
+  { theme: "Obediência", ref: "Efésios 6:1", icon: Anchor, color: "from-blue-600/40 to-indigo-600/40" },
+  { theme: "Vitória", ref: "1 Coríntios 15:57", icon: Award, color: "from-amber-400/40 to-yellow-500/40" },
+];
+
+const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isLoading, audience }) => {
   const [selectedRef, setSelectedRef] = useState('Salmos 23');
   const [showSelector, setShowSelector] = useState(false);
+
+  // Define qual lista usar baseada na audiência
+  const currentThemeList = audience === AudienceType.CHILD ? KIDS_THEMES : MASTER_THEMES;
 
   // Calcula os 5 temas do dia baseados na data atual com rotação não-sequencial
   const dailyThemes = useMemo(() => {
@@ -62,23 +86,20 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
     const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
     
     const selected: DevotionalSuggestion[] = [];
-    const total = MASTER_THEMES.length;
+    const total = currentThemeList.length;
     
     // Configuração para rotação pseudo-aleatória determinística:
-    // DAY_STEP (7): Garante que a "janela" inicial mude a cada dia de forma não linear.
-    // ITEM_STEP (13): Garante que os itens dentro do mesmo dia não sejam vizinhos imediatos na lista.
-    // Ambos são primos relativos ao tamanho da lista (30) para maximizar a distribuição.
     const DAY_STEP = 7; 
     const ITEM_STEP = 13; 
 
     for (let i = 0; i < 5; i++) {
       // Fórmula: (Salto do Dia + Salto do Item) % Total
       const index = ((dayOfYear * DAY_STEP) + (i * ITEM_STEP)) % total;
-      selected.push(MASTER_THEMES[index]);
+      selected.push(currentThemeList[index]);
     }
     
     return selected;
-  }, []);
+  }, [currentThemeList]); // Recalcula se a lista mudar (mudança de audiência)
   
   const handleSuggestionClick = (ref: string) => {
     setSelectedRef(ref);
@@ -94,16 +115,28 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
   return (
     <div className="animate-fade-in flex flex-col gap-4">
       {/* Hero Devocional Atos */}
-      <div className="bg-gradient-to-br from-brand-600 to-brand-900 rounded-3xl md:rounded-[2.5rem] p-5 md:p-10 text-white shadow-xl overflow-hidden relative border border-brand-400/20">
+      <div className={`
+        rounded-3xl md:rounded-[2.5rem] p-5 md:p-10 text-white shadow-xl overflow-hidden relative border border-brand-400/20
+        ${audience === AudienceType.CHILD 
+          ? 'bg-gradient-to-br from-cyan-500 to-blue-600' 
+          : 'bg-gradient-to-br from-brand-600 to-brand-900'
+        }
+      `}>
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-2 md:mb-5">
-            <div className="p-2 bg-brand-400 text-black rounded-xl">
+            <div className={`p-2 rounded-xl text-black ${audience === AudienceType.CHILD ? 'bg-yellow-300' : 'bg-brand-400'}`}>
               <Coffee size={16} className="md:w-6 md:h-6" />
             </div>
-            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-brand-400">Pão de Cada Dia</span>
+            <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] ${audience === AudienceType.CHILD ? 'text-yellow-300' : 'text-brand-400'}`}>
+              {audience === AudienceType.CHILD ? 'Hora da História' : 'Pão de Cada Dia'}
+            </span>
           </div>
-          <h2 className="text-xl md:text-4xl font-serif font-bold leading-tight uppercase tracking-tighter">Meditação Profunda</h2>
-          <p className="text-white/60 text-xs md:text-base mt-2 font-medium">Temas renovados hoje para edificar sua vida.</p>
+          <h2 className="text-xl md:text-4xl font-serif font-bold leading-tight uppercase tracking-tighter">
+            {audience === AudienceType.CHILD ? 'Aventura Bíblica' : 'Meditação Profunda'}
+          </h2>
+          <p className="text-white/60 text-xs md:text-base mt-2 font-medium">
+            {audience === AudienceType.CHILD ? 'Histórias incríveis para hoje!' : 'Temas renovados hoje para edificar sua vida.'}
+          </p>
         </div>
         <Quote className="absolute right-[-30px] bottom-[-30px] text-white/5 w-32 h-32 md:w-64 md:h-64 -rotate-12" />
       </div>
@@ -112,7 +145,9 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
         {/* Curadoria de Temas Diários */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">Curadoria para Hoje</h3>
+            <h3 className="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">
+              {audience === AudienceType.CHILD ? 'Escolha sua Aventura' : 'Curadoria para Hoje'}
+            </h3>
             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-400/10 rounded-full border border-brand-400/20">
                <div className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
                <span className="text-[9px] font-black text-brand-400 uppercase">Atualizado</span>
@@ -136,10 +171,10 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
                   <div className={`p-3 rounded-xl transition-all ${isSelected ? 'bg-brand-400 text-black shadow-lg' : 'bg-slate-900 group-hover:bg-slate-800'}`}>
                     <Icon size={20} className="md:w-5 md:h-5" />
                   </div>
-                  <span className="text-xs font-black tracking-widest uppercase">{cat.theme}</span>
+                  <span className="text-xs font-black tracking-widest uppercase text-center leading-tight">{cat.theme}</span>
                   
                   {/* Subtle Background Glow for each theme */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${cat.color} opacity-0 group-hover:opacity-10 transition-opacity`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${cat.color} opacity-0 group-hover:opacity-20 transition-opacity`} />
                 </button>
               );
             })}

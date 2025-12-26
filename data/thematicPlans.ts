@@ -12,7 +12,7 @@ export interface ThematicPlan {
   title: string;
   description: string;
   duration: number; // em dias
-  category: 'Vida Cristã' | 'Emoções' | 'Doutrina' | 'Personagens' | 'Jovens' | 'Desafios';
+  category: 'Vida Cristã' | 'Emoções' | 'Doutrina' | 'Personagens' | 'Jovens' | 'Desafios' | 'Crianças';
   icon: string;
   color: string;
   days: StudyDay[];
@@ -94,6 +94,58 @@ const generateOneYearBiblePlan = (): StudyDay[] => {
 };
 
 export const thematicPlans: ThematicPlan[] = [
+  // --- PLANOS PARA CRIANÇAS (NOVO) ---
+  {
+    id: 'kids-criacao',
+    title: 'Detetives da Criação',
+    description: 'Pegue sua lupa! Vamos investigar as coisas incríveis que Deus criou em 5 dias de aventuras.',
+    duration: 5,
+    category: 'Crianças',
+    icon: '🦁',
+    color: 'from-green-400 to-yellow-500',
+    days: [
+      { day: 1, reference: 'Gênesis 1:1-5', focus: 'A Grande Luz! (Dia e Noite)' },
+      { day: 2, reference: 'Gênesis 1:20-23', focus: 'Peixes e Pássaros Coloridos' },
+      { day: 3, reference: 'Gênesis 1:24-31', focus: 'Leões, Ursos e... VOCÊ!' },
+      { day: 4, reference: 'Salmos 19:1-4', focus: 'O Céu Conta Histórias' },
+      { day: 5, reference: 'Gênesis 2:1-3', focus: 'O Descanso do Criador' },
+    ]
+  },
+  {
+    id: 'kids-superherois',
+    title: 'Super-Heróis da Fé',
+    description: 'Esqueça as capas! Conheça os heróis reais que venceram gigantes e leões com a ajuda de Deus.',
+    duration: 5,
+    category: 'Crianças',
+    icon: '🦸',
+    color: 'from-blue-500 to-red-500',
+    days: [
+      { day: 1, reference: '1 Samuel 17', focus: 'Davi e o Gigante Golias' },
+      { day: 2, reference: 'Daniel 6', focus: 'Daniel na Cova dos Leões' },
+      { day: 3, reference: 'Jonas 1-2', focus: 'Jonas e o Grande Peixe' },
+      { day: 4, reference: 'Êxodo 14', focus: 'Moisés Abre o Marzão' },
+      { day: 5, reference: 'Juízes 16', focus: 'A Força de Sansão' },
+    ]
+  },
+  {
+    id: 'kids-agentes',
+    title: 'Agentes da Bondade',
+    description: 'Missões secretas para espalhar amor e alegria como Jesus ensinou. Aceita o desafio?',
+    duration: 7,
+    category: 'Crianças',
+    icon: '🕵️',
+    color: 'from-indigo-400 to-purple-500',
+    days: [
+      { day: 1, reference: 'Lucas 10:25-37', focus: 'Missão: O Bom Samaritano' },
+      { day: 2, reference: 'Lucas 17:11-19', focus: 'Missão: Dizer Obrigado' },
+      { day: 3, reference: 'Mateus 5:14-16', focus: 'Missão: Brilhar sua Luz' },
+      { day: 4, reference: 'Efésios 4:32', focus: 'Missão: Perdoar o Amigo' },
+      { day: 5, reference: 'João 6:1-13', focus: 'Missão: Dividir o Lanche' },
+      { day: 6, reference: 'Provérbios 17:17', focus: 'Missão: Ser um Amigão' },
+      { day: 7, reference: '1 João 4:7-11', focus: 'Missão Final: Deus é Amor' },
+    ]
+  },
+
   // --- DESAFIOS DE TEMPO ---
   {
     id: '7-dias-hardcore',

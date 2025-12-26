@@ -357,7 +357,7 @@ const App: React.FC = () => {
           `}>
             
             <div className={['plan', 'thematic'].includes(inputMode) ? '' : 'min-h-[100px]'}>
-              {inputMode === 'devotional' && <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading} />}
+              {inputMode === 'devotional' && <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading} audience={selectedAudience} />}
               {inputMode === 'plan' && <ReadingPlanView onSelectReference={(ref, mode) => mode === 'read' ? handleReadBible(ref) : handleGenerate(ref)} isLoading={loading} />}
               {inputMode === 'thematic' && <ThematicPlansView onSelectAction={(ref, mode) => mode === 'read' ? handleReadBible(ref) : handleGenerate(ref)} isLoading={loading} />}
               {inputMode === 'free' && (

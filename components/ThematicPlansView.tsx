@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { thematicPlans, ThematicPlan } from '../data/thematicPlans';
-import { BookOpen, Sparkles, ChevronLeft, Clock, ArrowRight, Loader2, Filter, Users, Heart, GraduationCap, Zap, Trophy, Search } from 'lucide-react';
+import { BookOpen, Sparkles, ChevronLeft, Clock, ArrowRight, Loader2, Filter, Users, Heart, GraduationCap, Zap, Trophy, Search, Smile } from 'lucide-react';
 
 interface ThematicPlansViewProps {
   onSelectAction: (ref: string, mode: 'read' | 'explain') => void;
@@ -18,6 +18,7 @@ const ThematicPlansView: React.FC<ThematicPlansViewProps> = ({ onSelectAction, i
 
   const categories: { label: CategoryFilter, icon: any }[] = [
     { label: 'Todos', icon: Filter },
+    { label: 'Crianças', icon: Smile },
     { label: 'Desafios', icon: Trophy },
     { label: 'Jovens', icon: Zap },
     { label: 'Vida Cristã', icon: Users },
