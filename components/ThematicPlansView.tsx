@@ -123,8 +123,10 @@ const ThematicPlansView: React.FC<ThematicPlansViewProps> = ({ onSelectAction, i
     );
   }
 
+  // LIST VIEW - REORGANIZED FOR RESPONSIVENESS
   return (
     <div className="animate-fade-in flex flex-col gap-6">
+      {/* Category Tabs */}
       <div className="flex gap-2 p-1 bg-slate-900/50 rounded-2xl overflow-x-auto no-scrollbar scroll-smooth snap-x border border-slate-800">
         {categories.map((cat) => {
           const Icon = cat.icon;
@@ -143,29 +145,54 @@ const ThematicPlansView: React.FC<ThematicPlansViewProps> = ({ onSelectAction, i
         })}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+      {/* Responsive Grid/List */}
+      {/* Mobile: Single Column (Vertical Stack) | Desktop: Grid 2 or 3 cols */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 pb-20 sm:pb-0">
         {filteredPlans.map((plan) => (
           <button
             key={plan.id}
             onClick={() => setSelectedPlan(plan)}
-            className="group text-left bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden hover:shadow-2xl hover:border-brand-400/30 active:scale-[0.98] transition-all duration-300 flex flex-col h-full"
+            className="group text-left bg-slate-900 border border-slate-800 rounded-3xl sm:rounded-[2rem] overflow-hidden hover:shadow-2xl hover:border-brand-400/30 active:scale-[0.98] transition-all duration-300 flex flex-row sm:flex-col items-stretch h-auto sm:h-full"
           >
-            <div className={`h-24 bg-gradient-to-r ${plan.color} p-5 flex items-end justify-between relative`}>
-              <span className="text-4xl relative z-10">{plan.icon}</span>
-              <span className="bg-black/20 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] font-black text-white uppercase tracking-tighter border border-white/10 z-10">
+            {/* 
+               MOBILE LAYOUT: Left side icon box
+               DESKTOP LAYOUT: Top side header 
+            */}
+            <div className={`
+              w-24 sm:w-full sm:h-24 md:h-28 flex-shrink-0 
+              bg-gradient-to-br ${plan.color} 
+              p-4 sm:p-5 
+              flex flex-col sm:flex-row items-center justify-center sm:items-end sm:justify-between 
+              relative
+            `}>
+              <span className="text-3xl sm:text-4xl relative z-10 drop-shadow-md transform group-hover:scale-110 transition-transform duration-300">{plan.icon}</span>
+              
+              {/* Desktop Badge */}
+              <span className="hidden sm:inline-block bg-black/20 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] font-black text-white uppercase tracking-tighter border border-white/10 z-10">
                 {plan.category}
               </span>
             </div>
-            <div className="p-5 flex flex-col flex-grow">
-              <h3 className="text-lg font-black text-white mb-1 leading-tight group-hover:text-brand-400 transition-colors">{plan.title}</h3>
-              <p className="text-slate-500 text-xs line-clamp-2 mb-4 leading-relaxed">{plan.description}</p>
+
+            <div className="p-4 sm:p-5 flex flex-col justify-between flex-grow min-w-0">
+              <div>
+                 {/* Mobile Badge */}
+                 <span className="sm:hidden text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 block">
+                    {plan.category}
+                 </span>
+                 <h3 className="text-base sm:text-lg font-black text-white mb-1 leading-tight group-hover:text-brand-400 transition-colors truncate sm:whitespace-normal">
+                    {plan.title}
+                 </h3>
+                 <p className="text-slate-500 text-xs line-clamp-2 sm:line-clamp-3 mb-2 sm:mb-4 leading-relaxed">
+                    {plan.description}
+                 </p>
+              </div>
               
-              <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-800">
+              <div className="mt-auto flex items-center justify-between pt-2 sm:pt-4 border-t border-slate-800/50 sm:border-slate-800 w-full">
                 <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   <Clock size={12} /> {plan.duration} Dias
                 </div>
-                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-brand-400 group-hover:bg-brand-400 group-hover:text-black transition-all">
-                  <ArrowRight size={16} />
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-800 flex items-center justify-center text-brand-400 group-hover:bg-brand-400 group-hover:text-black transition-all">
+                  <ArrowRight size={14} className="sm:w-4 sm:h-4" />
                 </div>
               </div>
             </div>

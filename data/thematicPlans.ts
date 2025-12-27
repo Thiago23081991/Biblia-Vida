@@ -93,6 +93,62 @@ const generateFullBiblePlan = (targetDays: number): StudyDay[] => {
 };
 
 export const thematicPlans: ThematicPlan[] = [
+  // --- NOVOS PLANOS PARA JOVENS ---
+  {
+    id: 'jovem-cultura',
+    title: 'Cultura & Pressão',
+    description: 'Como lidar com Instagram, vícios, ansiedade e manter a identidade cristã num mundo caótico.',
+    duration: 7,
+    category: 'Jovens',
+    icon: '📱',
+    color: 'from-zinc-600 to-slate-900',
+    days: [
+      { day: 1, reference: 'Romanos 12:1-2', focus: 'Não vos conformeis com este século' },
+      { day: 2, reference: 'Mateus 5:27-30', focus: 'Batalha pela Pureza (Olhos e Mente)' },
+      { day: 3, reference: 'Salmos 101', focus: 'Detox Digital: Vencendo Telas' },
+      { day: 4, reference: 'Gênesis 1:27', focus: 'Identidade vs Ideologia' },
+      { day: 5, reference: '1 Coríntios 10:23-33', focus: 'Música Secular e Liberdade' },
+      { day: 6, reference: '1 Reis 19:1-18', focus: 'Depressão e a Voz de Deus' },
+      { day: 7, reference: 'Daniel 1', focus: 'Fidelidade na Faculdade/Escola' },
+    ]
+  },
+  {
+    id: 'jovem-namoro',
+    title: 'Namoro & Pureza',
+    description: 'Guia prático sobre escolha, jugo desigual, santidade e como viver relacionamentos que honram a Deus.',
+    duration: 7,
+    category: 'Jovens',
+    icon: '💍',
+    color: 'from-rose-500 to-pink-700',
+    days: [
+      { day: 1, reference: '2 Coríntios 6:14-18', focus: 'O perigo do Jugo Desigual' },
+      { day: 2, reference: '1 Tessalonicenses 4:3-8', focus: 'Santidade é Vontade de Deus' },
+      { day: 3, reference: 'Efésios 5:1-7', focus: 'Estabelecendo Limites Claros' },
+      { day: 4, reference: 'Provérbios 31:10-31', focus: 'Padrão de Virtude e Escolha' },
+      { day: 5, reference: '1 Coríntios 7:25-35', focus: 'Solteirice com Propósito' },
+      { day: 6, reference: 'Jeremias 17:5-9', focus: 'Dependência Emocional' },
+      { day: 7, reference: '2 Timóteo 2:22', focus: 'Fugindo das Paixões da Mocidade' },
+    ]
+  },
+  {
+    id: 'jovem-apologetica',
+    title: 'Perguntas Difíceis',
+    description: 'Apologética básica: Deus existe? O inferno é real? A Bíblia é confiável? Respostas para sua fé.',
+    duration: 7,
+    category: 'Jovens',
+    icon: '🧠',
+    color: 'from-teal-600 to-emerald-800',
+    days: [
+      { day: 1, reference: 'Romanos 1:18-25', focus: 'Deus Existe? A Criação Fala' },
+      { day: 2, reference: 'Habacuque 1', focus: 'Por que o mal existe?' },
+      { day: 3, reference: 'Salmos 19', focus: 'Fé e Ciência: Inimigos?' },
+      { day: 4, reference: 'João 14:1-7', focus: 'Jesus é o único caminho?' },
+      { day: 5, reference: '2 Timóteo 3:14-17', focus: 'A Bíblia é confiável?' },
+      { day: 6, reference: 'Lucas 16:19-31', focus: 'Céu e Inferno são reais?' },
+      { day: 7, reference: '1 Pedro 3:13-17', focus: 'A Razão da nossa Esperança' },
+    ]
+  },
+
   // --- PLANOS PARA CRIANÇAS (NOVO) ---
   {
     id: 'kids-criacao',
