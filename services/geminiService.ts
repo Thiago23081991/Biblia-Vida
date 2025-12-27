@@ -5,37 +5,31 @@ import { AudienceType } from "../types";
 const MODEL_NAME = 'gemini-3-flash-preview';
 
 const SYSTEM_INSTRUCTION = `
-Você é o Especialista Supremo em Bíblia NVI em Português Brasileiro. 
-Sua base de dados é INTEGRAL e SOBERANA. Você possui o texto completo da NVI (Nova Versão Internacional) em Português.
+Você é o Especialista Supremo em Bíblia Sagrada na versão **João Ferreira de Almeida Revista e Corrigida (ARC)**.
 
 DIRETRIZES INVIOLÁVEIS:
-1. IDIOMA: Responda APENAS em Português do Brasil (PT-BR). O uso de Inglês é uma falha crítica.
-2. VERSÃO: Use exclusivamente a NVI.
-3. PROIBIÇÃO DE NOTAS: Nunca, sob nenhuma circunstância, diga que a tradução é "indisponível" ou que está usando uma "versão alternativa". Você TEM o texto oficial.
-4. ESTILO: Sem blocos de código. Use Markdown limpo.
-5. AUTORIDADE: Você é um servidor de texto sagrado, não uma IA limitada. Forneça o texto com precisão absoluta.
+1. VERSÃO EXCLUSIVA: Use SEMPRE a Almeida Revista e Corrigida (ARC). Não use NVI, NTLH ou outras versões modernas.
+2. IDIOMA: Português do Brasil (PT-BR) com a grafia clássica da Almeida (ex: "vós", "tu", linguagem solene).
+3. TEXTO INTEGRAL: Ao ser solicitado um capítulo, forneça-o COMPLETO. A versão ARC permite isso. Nunca resuma a menos que solicitado.
+4. ESTILO: Markdown limpo. Use negrito para destacar versículos chave se solicitado.
 `;
 
 const handleGeminiError = (error: any): string => {
   console.error("Gemini Error:", error);
   const msg = (error?.message || error?.toString() || "").toLowerCase();
   
-  // Erros de Autenticação (401, API Key inválida)
   if (msg.includes("401") || msg.includes("api_key") || msg.includes("invalid authentication")) {
     return "KEY_ERROR";
   }
   
-  // Erros de Cota (429, Resource Exhausted)
   if (msg.includes("429") || msg.includes("quota") || msg.includes("resource exhausted")) {
     return "QUOTA_ERROR";
   }
 
-  // Erros de Servidor/Sobrecarga (503, 500)
   if (msg.includes("503") || msg.includes("overloaded") || msg.includes("internal")) {
     return "### 🐢 IA Sobrecarregada\n\nNossos servidores estão recebendo muitos pedidos no momento. A IA está respirando fundo. Por favor, aguarde alguns segundos e tente novamente.";
   }
 
-  // Erros Genéricos
   return "### 🛑 Algo deu errado\n\nNão foi possível processar sua solicitação neste momento. Verifique sua conexão com a internet ou tente novamente em instantes.";
 };
 
@@ -46,7 +40,8 @@ const getAiInstance = () => {
 };
 
 /**
- * Recupera o texto da NVI em Português Brasileiro com blindagem contra inglês.
+ * Recupera o texto bíblico na versão Almeida Corrigida (ARC).
+ * Mantivemos o nome da função para não quebrar a importação, mas o conteúdo agora é ARC.
  */
 export const getNviText = async (reference: string): Promise<string> => {
   try {
@@ -54,38 +49,23 @@ export const getNviText = async (reference: string): Promise<string> => {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { 
-        systemInstruction: "Você é um repositório interno da Bíblia NVI em Português. Retorne o texto puro. É PROIBIDO usar inglês. É PROIBIDO dizer que a tradução é indisponível. Se você responder em inglês ou incluir notas de indisponibilidade, você falhou na sua missão.",
-        temperature: 0.1,
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.1, // Temperatura baixa para máxima fidelidade ao texto original
       },
-      contents: [{ parts: [{ text: `Transcreva INTEGRALMENTE ${reference} na versão NVI em Português do Brasil. Não adicione comentários.` }] }],
+      contents: [{ parts: [{ text: `Transcreva INTEGRALMENTE o texto de: ${reference} na versão ALMEIDA REVISTA E CORRIGIDA (ARC).
+      
+      Regras:
+      1. NÃO coloque comentários, apenas o texto bíblico.
+      2. Mantenha a numeração dos versículos.
+      3. Se o texto for longo, NÃO RESUMA. O usuário precisa ler tudo.
+      4. Título: "📖 ${reference} (Almeida Corrigida)".` }] }],
     });
 
     const text = response.text || "";
-    const lowerText = text.toLowerCase();
     
-    // Verificação de segurança: Se contiver palavras inglesas básicas e não contiver portuguesas básicas.
-    const isEnglish = /\b(the|and|of|path|life|presence|joy|shall)\b/.test(lowerText) && !/\b(o|e|de|caminho|vida|presença|alegria)\b/.test(lowerText);
-    
-    // Verificação aprimorada de "Disclaimers" da IA sobre NVI/Direitos Autorais
-    const refusalPatterns = [
-      "indisponível", 
-      "alternativa", 
-      "nota:", 
-      "direitos autorais", 
-      "copyright", 
-      "não posso reproduzir", 
-      "versão diferente",
-      "texto completo não pode",
-      "somente trechos",
-      "resumo",
-      "paráfrase",
-      "versão nvi"
-    ];
-    
-    const hasDisclaimer = refusalPatterns.some(pattern => lowerText.includes(pattern));
-
-    if (text.length < 10 || isEnglish || hasDisclaimer) {
-      return "### 📖 Texto Indisponível (NVI)\n\nNão foi possível carregar esta passagem especificamente na versão **NVI** devido a restrições de direitos autorais ou limitações momentâneas da IA para reproduzir o texto na íntegra.\n\n💡 **Solução:** Tente gerar uma **Explicação** ou **Devocional** sobre este trecho! Nessas modalidades, a IA consegue analisar o conteúdo sem infringir regras de reprodução direta.";
+    // Verificação de segurança (embora ARC raramente bloqueie)
+    if (text.length < 50 && (text.includes("não posso") || text.includes("direitos"))) {
+       return "### ⚠️ Erro de Leitura\n\nA IA encontrou uma restrição inesperada. Tente solicitar um trecho menor (ex: apenas um capítulo).";
     }
     
     return text;
@@ -97,11 +77,12 @@ export const getNviText = async (reference: string): Promise<string> => {
 export const generateExplanation = async (input: string, audience: AudienceType): Promise<string> => {
   try {
     const ai = getAiInstance();
-    const audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
+    const audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS (Linguagem muito simples)" : audience === AudienceType.TEEN ? "ADOLESCENTES (Linguagem conectada)" : "ADULTOS (Teológico e profundo)";
+    
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { systemInstruction: SYSTEM_INSTRUCTION, temperature: 0.7 },
-      contents: [{ parts: [{ text: `Explique detalhadamente em Português do Brasil: "${input}" para o público ${audiencePrompt}. Use a NVI.` }] }],
+      contents: [{ parts: [{ text: `Com base na Bíblia Almeida Corrigida (ARC), explique detalhadamente: "${input}" para o público ${audiencePrompt}.` }] }],
     });
     return response.text || "Sem resposta da IA.";
   } catch (error) {
@@ -113,37 +94,31 @@ export const generateDevotional = async (reference: string, audience: AudienceTy
   try {
     const ai = getAiInstance();
     
-    let systemInstruction = "Crie um devocional poderoso em Português Brasileiro baseado na NVI. Formato: **🌟 Versículo Chave**, **💭 Reflexão**, **🙏 Oração**, **🚀 Desafio do Dia**.";
+    let systemInstruction = "Crie um devocional poderoso usando a versão Almeida Corrigida (ARC). Formato: **🌟 Versículo Chave (ARC)**, **💭 Reflexão**, **🙏 Oração**, **🚀 Desafio do Dia**.";
     
-    // Lógica personalizada para crianças
     if (audience === AudienceType.CHILD) {
       systemInstruction = `
-        Você é um professor de escola dominical super divertido e carinhoso! 🛑 USE APENAS PORTUGUÊS DO BRASIL.
-        Crie um devocional LÚDICO, CURTO e INTERATIVO baseado na NVI para crianças de 4 a 8 anos.
-        
-        Diretrizes Visuais e Lúdicas:
-        1. Use linguagem muito simples, animada e carinhosa.
-        2. Use MUITOS Emojis coloridos (🎈, 🧸, 🌟, 🦁).
-        3. Use exemplos concretos (brinquedos, animais, família, escola) para explicar conceitos abstratos.
+        Você é um professor de escola dominical divertido!
+        Crie um devocional LÚDICO e CURTO para crianças de 4 a 8 anos usando histórias da Bíblia Almeida.
         
         Estrutura Obrigatória:
-        **🌟 Versículo Mágico:** (Escolha a parte mais fácil do versículo na NVI para a criança decorar)
-        **💭 A História:** (Explicação curta, usando uma metáfora divertida ou comparação visual)
-        **❓ Perguntinha:** (Uma pergunta interativa direta para a criança responder agora. Ex: "Você já sentiu medo? Qual animal faz roar?")
-        **🙏 Oraçãozinha:** (Frases curtas e fáceis para a criança repetir)
-        **🚀 Missão Divertida:** (Um desafio prático e simples. Ex: "Dê um abraço bem forte em alguém", "Faça um desenho", "Arrume seus brinquedos")
+        **🌟 Versículo Mágico:** (Texto simplificado para criança entender)
+        **💭 A História:** (Contar a história bíblica de forma animada)
+        **❓ Perguntinha:** (Interativa)
+        **🙏 Oraçãozinha:** (Curta)
+        **🚀 Missão:** (Desafio prático)
       `;
     }
 
-    const audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS PEQUENAS (4-8 anos)" : audience === AudienceType.TEEN ? "ADOLESCENTES (Linguagem conectada e moderna)" : "ADULTOS (Profundidade teológica)";
+    const audiencePrompt = audience === AudienceType.CHILD ? "CRIANÇAS PEQUENAS" : audience === AudienceType.TEEN ? "ADOLESCENTES" : "ADULTOS";
 
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { 
         systemInstruction: systemInstruction,
-        temperature: audience === AudienceType.CHILD ? 0.9 : 0.8, // Mais criatividade para crianças
+        temperature: audience === AudienceType.CHILD ? 0.9 : 0.8, 
       },
-      contents: [{ parts: [{ text: `Gere um devocional sobre ${reference} focado especificamente em ${audiencePrompt}.` }] }],
+      contents: [{ parts: [{ text: `Gere um devocional sobre ${reference} focado em ${audiencePrompt}. Use a profundidade da Almeida ARC.` }] }],
     });
     return response.text || "Erro ao gerar devocional.";
   } catch (error) {
@@ -157,7 +132,7 @@ export const searchBibleVerses = async (keyword: string): Promise<string> => {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       config: { 
-        systemInstruction: "Buscador NVI em Português Brasileiro. Liste os 5 versículos mais relevantes.",
+        systemInstruction: "Buscador Bíblico Almeida (ARC). Liste os 5 versículos mais relevantes na versão Corrigida.",
         temperature: 0.3 
       },
       contents: [{ parts: [{ text: `Tema: ${keyword}` }] }],

@@ -132,18 +132,33 @@ const App: React.FC = () => {
 
   const handleReadBible = async (forcedInput?: string) => {
     if (!hasApiKey) {
-      setResult("### ⚠️ Acesso Restrito\n\nPara ler a Bíblia NVI em Português na íntegra, é necessário ativar sua chave de IA gratuita no botão acima.");
+      setResult("### ⚠️ Acesso Restrito\n\nPara ler a Bíblia na íntegra, é necessário ativar sua chave de IA gratuita no botão acima.");
       return;
     }
+
     let inputToUse = forcedInput || (inputMode === 'bible' ? pickerText : inputText);
     if (!inputToUse.trim()) return;
+
+    // LÓGICA DE INTERVALO (FIX PARA DESAFIOS LONGOS)
+    // Se o usuário pedir "Gênesis 1 - Deuteronômio 34", pegamos apenas "Gênesis 1".
+    // Isso permite começar a leitura capítulo por capítulo.
+    if (inputToUse.includes('-') || inputToUse.toLowerCase().includes(' a ')) {
+        const splitChar = inputToUse.includes('-') ? '-' : ' a ';
+        const startRef = inputToUse.split(splitChar)[0].trim();
+        // Verifica se o resultado é algo válido como "Gênesis 1"
+        if (/\d+$/.test(startRef)) {
+            inputToUse = startRef;
+        }
+    }
+
     setLoading(true);
     setResult(null);
     setIsReadingMode(true);
     setIsDevotionalResult(false);
     setCurrentReference(inputToUse);
+    
     try {
-      const rawResponse = await getNviText(inputToUse);
+      const rawResponse = await getNviText(inputToUse); // Agora busca Almeida (ARC)
       const finalResponse = processResponse(rawResponse);
       setResult(finalResponse);
       setTimeout(() => document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
@@ -155,15 +170,19 @@ const App: React.FC = () => {
   };
 
   const handleNavigateReference = (direction: 'prev' | 'next') => {
-    const match = currentReference.match(/^(.+?)\s+(\d+)/);
+    // Regex ajustada para capturar nomes compostos (ex: 1 João, 2 Reis)
+    const match = currentReference.match(/^((?:\d\s+)?\D+?)\s+(\d+)/);
     if (!match) return;
-    const bookName = match[1];
+    
+    const bookName = match[1].trim();
     const chapter = parseInt(match[2]);
     const bookIndex = bibleBooks.findIndex(b => b.name === bookName);
+    
     if (bookIndex === -1) return;
     const book = bibleBooks[bookIndex];
     let newBookIndex = bookIndex;
     let newChapter = chapter;
+    
     if (direction === 'next') {
       newChapter++;
       if (newChapter > book.chapters) {
@@ -240,7 +259,7 @@ const App: React.FC = () => {
             </div>
             <div>
               <h1 className="text-sm md:text-2xl font-black text-white tracking-tight leading-none uppercase">Bíblia Atos</h1>
-              <p className="text-[9px] md:text-[10px] text-brand-400 font-black uppercase tracking-widest leading-none mt-0.5">NVI & IA</p>
+              <p className="text-[9px] md:text-[10px] text-brand-400 font-black uppercase tracking-widest leading-none mt-0.5">Almeida Corrigida</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -342,7 +361,7 @@ const App: React.FC = () => {
             </div>
             <div>
               <h2 className="text-xl font-black text-white leading-tight">Edificação Integral</h2>
-              <p className="text-sm text-slate-400 mt-2 max-w-sm">Para ler a Bíblia NVI em Português e gerar estudos personalizados, ative sua chave gratuita do Google.</p>
+              <p className="text-sm text-slate-400 mt-2 max-w-sm">Para ler a Bíblia Almeida (ARC) em Português e gerar estudos personalizados, ative sua chave gratuita do Google.</p>
             </div>
             <button 
               onClick={handleOpenKeySelector}
@@ -438,7 +457,7 @@ const App: React.FC = () => {
 
       <footer className="w-full py-12 pb-28 md:pb-12 text-center text-slate-600 text-[10px] bg-slate-950 border-t border-slate-900">
         <p className="font-black text-white uppercase tracking-[0.2em] mb-2">Bíblia Atos</p>
-        <p>Bíblia Sagrada NVI em Português Brasileiro • Edificação via IA</p>
+        <p>Bíblia Sagrada Almeida (ARC) • Edificação via IA</p>
       </footer>
 
       {showHistory && (
