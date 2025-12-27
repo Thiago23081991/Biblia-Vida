@@ -75,13 +75,17 @@ export const getNviText = async (reference: string): Promise<string> => {
       "copyright", 
       "não posso reproduzir", 
       "versão diferente",
-      "texto completo não pode"
+      "texto completo não pode",
+      "somente trechos",
+      "resumo",
+      "paráfrase",
+      "versão nvi"
     ];
     
     const hasDisclaimer = refusalPatterns.some(pattern => lowerText.includes(pattern));
 
     if (text.length < 10 || isEnglish || hasDisclaimer) {
-      return "### 📖 Texto Indisponível\n\nNão foi possível carregar esta passagem especificamente na versão NVI devido a restrições de direitos autorais ou limitações momentâneas da IA.\n\n💡 **Dica:** Tente gerar uma **Explicação** ou **Devocional** sobre este trecho, pois isso funciona mesmo quando o texto puro é bloqueado.";
+      return "### 📖 Texto Indisponível (NVI)\n\nNão foi possível carregar esta passagem especificamente na versão **NVI** devido a restrições de direitos autorais ou limitações momentâneas da IA para reproduzir o texto na íntegra.\n\n💡 **Solução:** Tente gerar uma **Explicação** ou **Devocional** sobre este trecho! Nessas modalidades, a IA consegue analisar o conteúdo sem infringir regras de reprodução direta.";
     }
     
     return text;

@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import BibleSelector from './BibleSelector';
 import { AudienceType } from '../types';
-import { Coffee, Sparkles, BookOpen, Loader2, Quote, ChevronDown, ChevronUp, RefreshCw, Heart, Shield, Sun, Target, Wind, Anchor, Zap, Flame, Cloud, Compass, Key, Mountain, Star, Umbrella, Award, Bell, Briefcase, Camera, Eye, Gift, Moon, PenTool, Smile, Ghost, Crown, Music, Home, Dices } from 'lucide-react';
+import { Coffee, Sparkles, BookOpen, Loader2, Quote, ChevronDown, ChevronUp, Heart, Shield, Sun, Target, Wind, Anchor, Zap, Flame, Cloud, Compass, Key, Mountain, Star, Umbrella, Award, Bell, Briefcase, Camera, Eye, Gift, Moon, PenTool, Smile, Ghost, Crown, Music, Home, Dices } from 'lucide-react';
 
 interface DevotionalViewProps {
   onGenerate: (ref: string) => void;
