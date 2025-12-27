@@ -7,12 +7,11 @@ import AudienceSelector from './components/AudienceSelector';
 import ResultCard from './components/ResultCard';
 import BibleSelector from './components/BibleSelector';
 import StudySelector from './components/StudySelector';
-import ReadingPlanView from './components/ReadingPlanView';
 import ThematicPlansView from './components/ThematicPlansView';
 import DevotionalView from './components/DevotionalView';
 import { 
   Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, 
-  Search, GraduationCap, CalendarDays, Library, Coffee, 
+  Search, GraduationCap, Library, Coffee, 
   Loader2, Key, MoreHorizontal 
 } from 'lucide-react';
 
@@ -217,13 +216,12 @@ const App: React.FC = () => {
 
   const primaryNavItems = [
     { id: 'devotional', label: 'Devocional', icon: Coffee },
-    { id: 'plan', label: 'Planos', icon: CalendarDays },
+    { id: 'thematic', label: 'Temas', icon: Library },
     { id: 'bible', label: 'Bíblia', icon: BookOpen },
     { id: 'search', label: 'Busca', icon: Search },
   ];
 
   const secondaryNavItems = [
-    { id: 'thematic', label: 'Temas', icon: Library },
     { id: 'free', label: 'Explorar', icon: Type },
     { id: 'study', label: 'Estudos', icon: GraduationCap },
   ];
@@ -231,18 +229,18 @@ const App: React.FC = () => {
   const allNavItems = [...primaryNavItems, ...secondaryNavItems];
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center pb-24 md:pb-12 font-sans selection:bg-brand-400 selection:text-black overflow-x-hidden">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center font-sans selection:bg-brand-400 selection:text-black overflow-x-hidden">
       
       {/* HEADER DESKTOP & MOBILE */}
-      <header className="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 shadow-xl">
-        <div className="max-w-4xl mx-auto px-4 py-3 md:py-5 flex justify-between items-center">
-          <div className="flex items-center gap-3 group cursor-default">
-            <div className="bg-brand-400 p-2 rounded-xl text-black shadow-lg shadow-brand-400/20 transition-transform group-hover:scale-105">
-              <Book size={20} className="md:w-7 md:h-7" />
+      <header className="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 shadow-xl transition-all">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-2.5 group cursor-default">
+            <div className="bg-brand-400 p-1.5 md:p-2 rounded-xl text-black shadow-lg shadow-brand-400/20 transition-transform group-hover:scale-105">
+              <Book size={20} className="w-5 h-5 md:w-7 md:h-7" />
             </div>
             <div>
-              <h1 className="text-base md:text-2xl font-black text-white tracking-tight leading-none uppercase">Bíblia Atos</h1>
-              <p className="text-[10px] text-brand-400 font-black uppercase tracking-widest mt-1">NVI Brasileira & IA</p>
+              <h1 className="text-sm md:text-2xl font-black text-white tracking-tight leading-none uppercase">Bíblia Atos</h1>
+              <p className="text-[9px] md:text-[10px] text-brand-400 font-black uppercase tracking-widest leading-none mt-0.5">NVI & IA</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -267,7 +265,7 @@ const App: React.FC = () => {
             </nav>
             <button 
               onClick={() => setShowHistory(true)}
-              className="p-2.5 text-slate-400 hover:bg-slate-800 hover:text-brand-400 active:scale-95 rounded-full transition-all"
+              className="p-2 md:p-2.5 text-slate-400 hover:bg-slate-800 hover:text-brand-400 active:scale-95 rounded-full transition-all"
             >
               <HistoryIcon size={22} />
             </button>
@@ -277,7 +275,7 @@ const App: React.FC = () => {
 
       {/* MOBILE BOTTOM NAVIGATION */}
       <nav className="md:hidden fixed bottom-6 left-4 right-4 z-50">
-        <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-2 flex items-center justify-between">
+        <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] p-2 flex items-center justify-between relative z-50">
           {primaryNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = inputMode === item.id;
@@ -289,9 +287,9 @@ const App: React.FC = () => {
                   ${isActive ? 'text-brand-400 bg-brand-400/10' : 'text-slate-500 hover:text-slate-300'}
                 `}
               >
-                <Icon size={22} />
-                <span className="text-[8px] font-black uppercase mt-1 tracking-tighter">{item.label}</span>
-                {isActive && <div className="absolute -top-1 w-1 h-1 bg-brand-400 rounded-full shadow-[0_0_8px_#fbbf24]"></div>}
+                <Icon size={22} className={isActive ? 'stroke-[2.5px]' : 'stroke-2'} />
+                <span className="text-[8px] font-black uppercase mt-1 tracking-tighter scale-90">{item.label}</span>
+                {isActive && <div className="absolute top-1 w-1 h-1 bg-brand-400 rounded-full shadow-[0_0_8px_#fbbf24]"></div>}
               </button>
             );
           })}
@@ -302,36 +300,40 @@ const App: React.FC = () => {
             `}
           >
             <MoreHorizontal size={22} />
-            <span className="text-[8px] font-black uppercase mt-1 tracking-tighter">Mais</span>
+            <span className="text-[8px] font-black uppercase mt-1 tracking-tighter scale-90">Mais</span>
           </button>
         </div>
 
-        {/* Mobile More Drawer */}
+        {/* Mobile More Drawer with Backdrop */}
         {showMobileMore && (
-          <div className="absolute bottom-20 left-0 right-0 animate-slide-up-fade">
-            <div className="bg-slate-900/98 backdrop-blur-2xl border border-slate-800 rounded-3xl p-4 shadow-2xl grid grid-cols-3 gap-2">
-              {secondaryNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = inputMode === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => { setInputMode(item.id as InputMode); setShowMobileMore(false); }}
-                    className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all
-                      ${isActive ? 'bg-brand-400 text-black shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'}
-                    `}
-                  >
-                    <Icon size={20} />
-                    <span className="text-[9px] font-black uppercase mt-2 tracking-tighter text-center leading-none">{item.label}</span>
-                  </button>
-                );
-              })}
+          <>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={() => setShowMobileMore(false)}></div>
+            <div className="absolute bottom-[calc(100%+12px)] left-0 right-0 z-50 animate-slide-up-fade origin-bottom">
+              <div className="bg-slate-900/98 backdrop-blur-2xl border border-slate-800 rounded-3xl p-4 shadow-2xl grid grid-cols-2 gap-2">
+                {secondaryNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = inputMode === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => { setInputMode(item.id as InputMode); setShowMobileMore(false); }}
+                      className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all
+                        ${isActive ? 'bg-brand-400 text-black shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'}
+                      `}
+                    >
+                      <Icon size={20} />
+                      <span className="text-[9px] font-black uppercase mt-2 tracking-tighter text-center leading-none">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </nav>
 
-      <main className="w-full max-w-4xl mx-auto px-4 py-6 md:py-10 flex-grow">
+      {/* Padding bottom adicionado para não cobrir conteúdo com a barra mobile */}
+      <main className="w-full max-w-4xl mx-auto px-4 py-4 md:py-10 flex-grow pb-32 md:pb-12">
         
         {!hasApiKey && (
           <div className="mb-8 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col items-center text-center gap-5 animate-fade-in shadow-2xl">
@@ -353,12 +355,11 @@ const App: React.FC = () => {
 
         <section key={inputMode} className="animate-slide-up-fade">
           <div className={`bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-800 p-5 md:p-12 mb-10 overflow-hidden
-            ${['plan', 'thematic'].includes(inputMode) ? 'bg-transparent border-none shadow-none !p-0' : ''}
+            ${['thematic'].includes(inputMode) ? 'bg-transparent border-none shadow-none !p-0' : ''}
           `}>
             
-            <div className={['plan', 'thematic'].includes(inputMode) ? '' : 'min-h-[100px]'}>
+            <div className={['thematic'].includes(inputMode) ? '' : 'min-h-[100px]'}>
               {inputMode === 'devotional' && <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading} audience={selectedAudience} />}
-              {inputMode === 'plan' && <ReadingPlanView onSelectReference={(ref, mode) => mode === 'read' ? handleReadBible(ref) : handleGenerate(ref)} isLoading={loading} />}
               {inputMode === 'thematic' && <ThematicPlansView onSelectAction={(ref, mode) => mode === 'read' ? handleReadBible(ref) : handleGenerate(ref)} isLoading={loading} />}
               {inputMode === 'free' && (
                 <textarea
@@ -392,7 +393,7 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {!['plan', 'thematic', 'search'].includes(inputMode) && (
+            {!['thematic', 'search'].includes(inputMode) && (
               <div className="mt-10 pt-8 border-t border-slate-800 flex flex-col gap-8">
                 <AudienceSelector selected={selectedAudience} onChange={setSelectedAudience} />
                 <div className="grid grid-cols-2 gap-4">
@@ -431,7 +432,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="w-full py-12 pb-24 md:pb-12 text-center text-slate-600 text-[10px] bg-slate-950 border-t border-slate-900">
+      <footer className="w-full py-12 pb-28 md:pb-12 text-center text-slate-600 text-[10px] bg-slate-950 border-t border-slate-900">
         <p className="font-black text-white uppercase tracking-[0.2em] mb-2">Bíblia Atos</p>
         <p>Bíblia Sagrada NVI em Português Brasileiro • Edificação via IA</p>
       </footer>

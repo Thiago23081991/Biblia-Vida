@@ -30,8 +30,8 @@ const generateCanonicalPlan = (days: number): StudyDay[] => {
   }));
 };
 
-// Gerador Inteligente do Plano Anual
-const generateOneYearBiblePlan = (): StudyDay[] => {
+// Gerador Inteligente de Planos da Bíblia Completa (Genérico para qualquer duração)
+const generateFullBiblePlan = (targetDays: number): StudyDay[] => {
   const allChapters: { book: string; chapter: number; section: string }[] = [];
 
   // Achatando a Bíblia em uma lista única de capítulos com metadados
@@ -53,14 +53,13 @@ const generateOneYearBiblePlan = (): StudyDay[] => {
     }
   });
 
-  const totalDays = 365;
   const plan: StudyDay[] = [];
   let currentChapterIndex = 0;
 
-  for (let day = 1; day <= totalDays; day++) {
+  for (let day = 1; day <= targetDays; day++) {
     // Recalcula quantos capítulos faltam dividir pelos dias restantes para manter a média precisa
     const chaptersLeft = allChapters.length - currentChapterIndex;
-    const daysLeft = totalDays - day + 1;
+    const daysLeft = targetDays - day + 1;
     // Garante pelo menos 1 capítulo, arredonda para cima para terminar a tempo
     const chaptersToday = Math.max(1, Math.ceil(chaptersLeft / daysLeft));
 
@@ -84,7 +83,7 @@ const generateOneYearBiblePlan = (): StudyDay[] => {
     plan.push({
         day,
         reference: ref,
-        focus: `${start.section} • ${start.book}`
+        focus: `${start.section} • ${chaptersToday} Caps`
     });
 
     currentChapterIndex += chaptersToday;
@@ -148,6 +147,38 @@ export const thematicPlans: ThematicPlan[] = [
 
   // --- DESAFIOS DE TEMPO ---
   {
+    id: 'jejum-daniel',
+    title: 'Jejum de Daniel (21 Dias)',
+    description: 'Um propósito poderoso de 21 dias para desintoxicação espiritual, clareza mental e consagração total a Deus.',
+    duration: 21,
+    category: 'Desafios',
+    icon: '🥗',
+    color: 'from-emerald-600 to-teal-800',
+    days: [
+        { day: 1, reference: 'Daniel 1:8', focus: 'Propósito no Coração' },
+        { day: 2, reference: 'Daniel 1:12-16', focus: 'O Teste da Fidelidade' },
+        { day: 3, reference: 'Mateus 4:4', focus: 'Não só de Pão Viverá o Homem' },
+        { day: 4, reference: 'Isaías 58:6', focus: 'O Jejum que Agrada a Deus' },
+        { day: 5, reference: 'Salmos 51:10', focus: 'Purificação do Coração' },
+        { day: 6, reference: 'Romanos 12:1-2', focus: 'Renovação da Mente' },
+        { day: 7, reference: 'Daniel 9:3-4', focus: 'Buscando com Oração e Súplicas' },
+        { day: 8, reference: 'Joel 2:12-13', focus: 'Rasgai o Vosso Coração' },
+        { day: 9, reference: 'Mateus 6:16-18', focus: 'O Jejum Secreto' },
+        { day: 10, reference: 'Salmos 63:1-5', focus: 'A Sede da Alma por Deus' },
+        { day: 11, reference: 'Gálatas 5:16-17', focus: 'Carne vs Espírito' },
+        { day: 12, reference: 'Tiago 4:7-10', focus: 'Humilhação Diante de Deus' },
+        { day: 13, reference: 'Esdras 8:21-23', focus: 'Jejum por Proteção e Direção' },
+        { day: 14, reference: 'Neemias 1:4', focus: 'Intercessão pelo Povo' },
+        { day: 15, reference: 'Atos 13:2-3', focus: 'Jejum e o Chamado Missionário' },
+        { day: 16, reference: 'Mateus 17:14-21', focus: 'Fé para Mover Montanhas' },
+        { day: 17, reference: '1 Coríntios 9:24-27', focus: 'Disciplina Espiritual' },
+        { day: 18, reference: 'Colossenses 3:1-3', focus: 'Pensando nas Coisas do Alto' },
+        { day: 19, reference: 'Daniel 10:12', focus: 'A Resposta do Céu' },
+        { day: 20, reference: 'Efésios 3:16-19', focus: 'Fortalecidos no Homem Interior' },
+        { day: 21, reference: 'Daniel 12:3', focus: 'Brilhando como as Estrelas' },
+    ]
+  },
+  {
     id: '7-dias-hardcore',
     title: '7 Dias: Bíblia Toda',
     description: 'Desafio extremo APENAS para os fortes. Leia a Bíblia inteira em uma semana. Média de 170 capítulos por dia.',
@@ -164,6 +195,36 @@ export const thematicPlans: ThematicPlan[] = [
       { day: 6, reference: 'Oseias 1 - João 21', focus: 'Profetas Menores e 4 Evangelhos (156 caps)' },
       { day: 7, reference: 'Atos 1 - Apocalipse 22', focus: 'Igreja, Cartas e Fim dos Tempos (171 caps)' },
     ]
+  },
+  {
+    id: '15-dias-extremo',
+    title: '15 Dias: Desafio Extremo',
+    description: 'Leitura completa da Bíblia em ritmo acelerado. Cerca de 80 capítulos por dia para quem busca imersão total.',
+    duration: 15,
+    category: 'Desafios',
+    icon: '🚀',
+    color: 'from-red-600 to-rose-900',
+    days: generateFullBiblePlan(15)
+  },
+  {
+    id: '30-dias-imersao',
+    title: '30 Dias: Imersão Total',
+    description: 'Dedique um mês inteiro à Palavra. Leitura da Bíblia completa com média de 40 capítulos diários.',
+    duration: 30,
+    category: 'Desafios',
+    icon: '🔥',
+    color: 'from-orange-500 to-red-700',
+    days: generateFullBiblePlan(30)
+  },
+  {
+    id: '90-dias-completa',
+    title: '90 Dias: Bíblia Completa',
+    description: 'Leia toda a Bíblia em 3 meses. Um ritmo forte (aprox. 13 capítulos/dia), ideal para estações de busca intensa.',
+    duration: 90,
+    category: 'Desafios',
+    icon: '🏃',
+    color: 'from-blue-600 to-indigo-900',
+    days: generateFullBiblePlan(90)
   },
   {
     id: '31-dias-proverbios',
@@ -254,7 +315,7 @@ export const thematicPlans: ThematicPlan[] = [
   {
     id: '90-dias-panorama',
     title: '90 Dias: Panorama Bíblico',
-    description: 'Uma seleção dos capítulos mais importantes do Gênesis ao Apocalipse em 3 meses.',
+    description: 'Uma seleção dos capítulos mais importantes do Gênesis ao Apocalipse em 3 meses (Visão Geral).',
     duration: 90,
     category: 'Desafios',
     icon: '🌍',
@@ -264,12 +325,12 @@ export const thematicPlans: ThematicPlan[] = [
   {
     id: '1-ano-atos',
     title: 'Jornada Bíblica Anual',
-    description: 'O desafio supremo. Leia a Bíblia inteira (1.189 capítulos) em 365 dias com estrutura cronológica e teológica.',
+    description: 'O desafio supremo clássico. Leia a Bíblia inteira (1.189 capítulos) em 365 dias com estrutura teológica.',
     duration: 365,
     category: 'Desafios',
     icon: '👑',
     color: 'from-brand-600 to-black',
-    days: generateOneYearBiblePlan()
+    days: generateFullBiblePlan(365)
   },
 
   // --- DESAFIOS PARA JOVENS ---

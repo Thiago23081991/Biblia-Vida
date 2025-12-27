@@ -29,4 +29,4 @@ export interface HistoryItem {
   timestamp: number;
 }
 
-export type InputMode = 'free' | 'bible' | 'search' | 'study' | 'plan' | 'thematic' | 'devotional';
+export type InputMode = 'free' | 'bible' | 'search' | 'study' | 'thematic' | 'devotional';
