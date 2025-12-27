@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import BibleSelector from './BibleSelector';
 import { AudienceType } from '../types';
-import { Coffee, Sparkles, BookOpen, Loader2, Quote, ChevronDown, ChevronUp, RefreshCw, Heart, Shield, Sun, Target, Wind, Anchor, Zap, Flame, Cloud, Compass, Key, Mountain, Star, Umbrella, Award, Bell, Briefcase, Camera, Eye, Gift, Moon, PenTool, Smile, Ghost, Crown, Music, Home } from 'lucide-react';
+import { Coffee, Sparkles, BookOpen, Loader2, Quote, ChevronDown, ChevronUp, RefreshCw, Heart, Shield, Sun, Target, Wind, Anchor, Zap, Flame, Cloud, Compass, Key, Mountain, Star, Umbrella, Award, Bell, Briefcase, Camera, Eye, Gift, Moon, PenTool, Smile, Ghost, Crown, Music, Home, Dices } from 'lucide-react';
 
 interface DevotionalViewProps {
   onGenerate: (ref: string) => void;
@@ -107,9 +107,9 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
   };
 
   const handleRandomSuggestion = () => {
-    const randoms = ["Mateus 11:28", "Romanos 8:28", "Salmos 121", "João 14:27", "2 Timóteo 1:7", "Apocalipse 21:4", "Salmos 46:1", "Isaías 41:10"];
-    const random = randoms[Math.floor(Math.random() * randoms.length)];
-    setSelectedRef(random);
+    // Seleciona um tema aleatório da lista de sugestões do dia
+    const randomTheme = dailyThemes[Math.floor(Math.random() * dailyThemes.length)];
+    setSelectedRef(randomTheme.ref);
   };
 
   return (
@@ -148,9 +148,20 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
             <h3 className="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">
               {audience === AudienceType.CHILD ? 'Escolha sua Aventura' : 'Curadoria para Hoje'}
             </h3>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-400/10 rounded-full border border-brand-400/20">
-               <div className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
-               <span className="text-[9px] font-black text-brand-400 uppercase">Atualizado</span>
+            
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={handleRandomSuggestion}
+                className="flex items-center gap-2 px-3 py-1 bg-slate-800 hover:bg-brand-400 hover:text-black text-slate-400 rounded-full transition-all text-[10px] font-black uppercase tracking-widest border border-slate-700 group active:scale-95"
+              >
+                <Dices size={12} className="group-hover:rotate-180 transition-transform duration-500" />
+                <span>Surpreenda-me</span>
+              </button>
+
+              <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 bg-brand-400/10 rounded-full border border-brand-400/20">
+                <div className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
+                <span className="text-[9px] font-black text-brand-400 uppercase">Atualizado</span>
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -184,13 +195,6 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Referência Ativa</h3>
-            <button 
-              onClick={handleRandomSuggestion}
-              className="p-2 text-brand-400 hover:bg-brand-400/10 rounded-full transition-all active:rotate-180 duration-700"
-              title="Passagem Aleatória"
-            >
-              <RefreshCw size={18} />
-            </button>
           </div>
 
           {/* Card de Referência Ativa com Estilo Atos */}

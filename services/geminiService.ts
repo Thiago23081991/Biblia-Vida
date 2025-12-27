@@ -63,12 +63,25 @@ export const getNviText = async (reference: string): Promise<string> => {
     const text = response.text || "";
     const lowerText = text.toLowerCase();
     
-    // Verificação de segurança: Se contiver palavras inglesas básicas e não contiver portuguesas básicas, ou notas de erro.
+    // Verificação de segurança: Se contiver palavras inglesas básicas e não contiver portuguesas básicas.
     const isEnglish = /\b(the|and|of|path|life|presence|joy|shall)\b/.test(lowerText) && !/\b(o|e|de|caminho|vida|presença|alegria)\b/.test(lowerText);
-    const hasDisclaimer = lowerText.includes("indisponível") || lowerText.includes("alternativa") || lowerText.includes("nota:");
+    
+    // Verificação aprimorada de "Disclaimers" da IA sobre NVI/Direitos Autorais
+    const refusalPatterns = [
+      "indisponível", 
+      "alternativa", 
+      "nota:", 
+      "direitos autorais", 
+      "copyright", 
+      "não posso reproduzir", 
+      "versão diferente",
+      "texto completo não pode"
+    ];
+    
+    const hasDisclaimer = refusalPatterns.some(pattern => lowerText.includes(pattern));
 
     if (text.length < 10 || isEnglish || hasDisclaimer) {
-      throw new Error("Conteúdo bloqueado: O modelo tentou fornecer tradução incorreta ou aviso de indisponibilidade.");
+      return "### 📖 Texto Indisponível\n\nNão foi possível carregar esta passagem especificamente na versão NVI devido a restrições de direitos autorais ou limitações momentâneas da IA.\n\n💡 **Dica:** Tente gerar uma **Explicação** ou **Devocional** sobre este trecho, pois isso funciona mesmo quando o texto puro é bloqueado.";
     }
     
     return text;

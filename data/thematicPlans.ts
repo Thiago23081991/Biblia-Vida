@@ -621,6 +621,8 @@ export const thematicPlans: ThematicPlan[] = [
       { day: 5, reference: 'Mateus 6:5-15', focus: 'Aprendendo a Orar' },
     ]
   },
+  
+  // --- NOVOS PLANOS EMOÇÕES ---
   {
     id: 'vencendo-ansiedade',
     title: 'Vencendo a Ansiedade',
@@ -635,6 +637,146 @@ export const thematicPlans: ThematicPlan[] = [
       { day: 3, reference: '1 Pedro 5:6-7', focus: 'Lançando sobre Ele o cuidado' },
       { day: 4, reference: 'Salmos 42', focus: 'Por que te abates ó minha alma?' },
       { day: 5, reference: 'Isaías 41:10', focus: 'Eu te ajudo e te sustento' },
+    ]
+  },
+  {
+    id: 'emocoes-depressao',
+    title: 'Saindo da Caverna',
+    description: 'Uma jornada bíblica sobre depressão e tristeza profunda, aprendendo com Elias e Davi que Deus ouve o choro.',
+    duration: 7,
+    category: 'Emoções',
+    icon: '🕯️',
+    color: 'from-slate-600 to-gray-800',
+    days: [
+      { day: 1, reference: '1 Reis 19:1-9', focus: 'Elias debaixo do Zimbro (Exaustão)' },
+      { day: 2, reference: 'Salmos 42', focus: 'A alma sedenta e abatida' },
+      { day: 3, reference: 'Salmos 88', focus: 'Orando na escuridão' },
+      { day: 4, reference: 'Lamentações 3:19-24', focus: 'Trazendo à memória a esperança' },
+      { day: 5, reference: '2 Coríntios 1:3-7', focus: 'O Pai das misericórdias' },
+      { day: 6, reference: 'Salmos 40:1-3', focus: 'Tirou-me do poço de perdição' },
+      { day: 7, reference: 'Isaías 43:1-3', focus: 'Quando passares pelas águas' },
+    ]
+  },
+  {
+    id: 'emocoes-luto',
+    title: 'Consolo no Luto',
+    description: 'O abraço de Deus para quem chora a perda. Encontre esperança na ressurreição e no cuidado divino.',
+    duration: 7,
+    category: 'Emoções',
+    icon: '🥀',
+    color: 'from-violet-500 to-purple-800',
+    days: [
+      { day: 1, reference: 'Salmos 34:18', focus: 'Perto está o Senhor' },
+      { day: 2, reference: 'João 11:32-36', focus: 'Jesus chorou' },
+      { day: 3, reference: '1 Tessalonicenses 4:13-18', focus: 'Não como os que não têm esperança' },
+      { day: 4, reference: 'Salmos 23', focus: 'O Vale da Sombra da Morte' },
+      { day: 5, reference: 'Apocalipse 21:4', focus: 'Ele enxugará toda lágrima' },
+      { day: 6, reference: '2 Samuel 12:15-23', focus: 'A adoração em meio à perda' },
+      { day: 7, reference: 'João 14:1-6', focus: 'A promessa do lar celestial' },
+    ]
+  },
+  {
+    id: 'emocoes-ira',
+    title: 'Lidando com a Ira',
+    description: 'Transforme a raiva destrutiva em sabedoria. Aprenda a diferença entre ira santa e pecado.',
+    duration: 5,
+    category: 'Emoções',
+    icon: '🌋',
+    color: 'from-red-600 to-orange-700',
+    days: [
+      { day: 1, reference: 'Efésios 4:26-27', focus: 'Irai-vos e não pequeis' },
+      { day: 2, reference: 'Tiago 1:19-20', focus: 'Tardio para se irar' },
+      { day: 3, reference: 'Provérbios 15:1', focus: 'A resposta branda' },
+      { day: 4, reference: 'Gênesis 4:1-8', focus: 'O perigo da ira não tratada (Caim)' },
+      { day: 5, reference: 'Colossenses 3:8', focus: 'Despojando-se da cólera' },
+    ]
+  },
+  {
+    id: 'emocoes-culpa',
+    title: 'Culpa vs Graça',
+    description: 'Você se sente indigno? Descubra a diferença entre a condenação do inimigo e a convicção do Espírito.',
+    duration: 5,
+    category: 'Emoções',
+    icon: '⚖️',
+    color: 'from-stone-500 to-stone-700',
+    days: [
+      { day: 1, reference: 'Romanos 8:1', focus: 'Nenhuma condenação' },
+      { day: 2, reference: '1 João 1:9', focus: 'Confissão e Purificação' },
+      { day: 3, reference: 'Salmos 32', focus: 'A alegria do perdão' },
+      { day: 4, reference: 'Miqueias 7:18-19', focus: 'Lançados nas profundezas do mar' },
+      { day: 5, reference: 'Hebreus 10:19-22', focus: 'Consciência limpa pelo sangue' },
+    ]
+  },
+  {
+    id: 'emocoes-rejeicao',
+    title: 'Curando a Rejeição',
+    description: 'Para quem se sente sozinho ou deixado de lado. Descubra sua aceitação incondicional em Cristo.',
+    duration: 5,
+    category: 'Emoções',
+    icon: '🩹',
+    color: 'from-pink-600 to-rose-800',
+    days: [
+      { day: 1, reference: 'Salmos 27:10', focus: 'O Senhor me acolherá' },
+      { day: 2, reference: 'Isaías 49:15-16', focus: 'Gravado na palma da mão' },
+      { day: 3, reference: 'Efésios 1:3-6', focus: 'Escolhidos e Aceitos no Amado' },
+      { day: 4, reference: 'Lucas 19:1-10', focus: 'Jesus busca os excluídos (Zaqueu)' },
+      { day: 5, reference: '1 Pedro 2:9-10', focus: 'Povo exclusivo de Deus' },
+    ]
+  },
+
+  // --- NOVOS PLANOS VIDA CRISTÃ (EXPANSÃO) ---
+  {
+    id: 'fruto-espirito',
+    title: 'O Fruto do Espírito',
+    description: 'Uma jornada de 9 dias para cultivar o caráter de Cristo em sua vida diária e relacionamentos.',
+    duration: 9,
+    category: 'Vida Cristã',
+    icon: '🍇',
+    color: 'from-green-500 to-emerald-700',
+    days: [
+      { day: 1, reference: '1 Coríntios 13', focus: 'Amor: O Vínculo da Perfeição' },
+      { day: 2, reference: 'Filipenses 4:4-7', focus: 'Alegria: Força no Senhor' },
+      { day: 3, reference: 'João 14:27', focus: 'Paz: Em meio à tempestade' },
+      { day: 4, reference: 'Tiago 5:7-11', focus: 'Paciência: Esperando em Deus' },
+      { day: 5, reference: 'Colossenses 3:12-14', focus: 'Amabilidade: O trato suave' },
+      { day: 6, reference: 'Efésios 4:32', focus: 'Bondade: Ação prática' },
+      { day: 7, reference: 'Lamentações 3:22-23', focus: 'Fidelidade: Firmeza de caráter' },
+      { day: 8, reference: 'Mateus 11:29', focus: 'Mansidão: Força sob controle' },
+      { day: 9, reference: 'Provérbios 25:28', focus: 'Domínio Próprio: Governo do Eu' },
+    ]
+  },
+  {
+    id: 'perdao-liberdade',
+    title: 'Perdão e Liberdade',
+    description: 'Quebre as correntes da amargura e descubra a cura emocional através do perdão bíblico.',
+    duration: 5,
+    category: 'Vida Cristã',
+    icon: '🕊️',
+    color: 'from-sky-400 to-blue-600',
+    days: [
+      { day: 1, reference: 'Colossenses 3:13', focus: 'O Mandamento de Perdoar' },
+      { day: 2, reference: 'Mateus 18:21-35', focus: 'O Perdão Ilimitado (70x7)' },
+      { day: 3, reference: 'Gênesis 50:15-21', focus: 'Você quis o mal, Deus o bem' },
+      { day: 4, reference: 'Romanos 8:1-2', focus: 'Perdoando a Si Mesmo' },
+      { day: 5, reference: '2 Coríntios 5:17-21', focus: 'O Ministério da Reconciliação' },
+    ]
+  },
+  {
+    id: 'mordomia-crista',
+    title: 'Mordomia do Reino',
+    description: 'Princípios bíblicos sobre dinheiro, generosidade e a correta administração dos recursos de Deus.',
+    duration: 7,
+    category: 'Vida Cristã',
+    icon: '💰',
+    color: 'from-amber-400 to-yellow-600',
+    days: [
+      { day: 1, reference: 'Salmos 24:1-2', focus: 'Deus é o Dono de Tudo' },
+      { day: 2, reference: 'Mateus 25:14-30', focus: 'A Parábola dos Talentos' },
+      { day: 3, reference: 'Malaquias 3:8-12', focus: 'Fidelidade nos Dízimos' },
+      { day: 4, reference: '2 Coríntios 9:6-11', focus: 'A Generosidade e a Colheita' },
+      { day: 5, reference: '1 Timóteo 6:6-10', focus: 'Contentamento vs Amor ao Dinheiro' },
+      { day: 6, reference: 'Provérbios 22:7', focus: 'Sabedoria: Evitando Dívidas' },
+      { day: 7, reference: 'Mateus 6:19-21', focus: 'Tesouros no Céu' },
     ]
   }
 ];

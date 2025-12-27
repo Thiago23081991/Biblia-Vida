@@ -232,10 +232,10 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-slate-950 flex flex-col items-center font-sans selection:bg-brand-400 selection:text-black overflow-x-hidden">
       
       {/* HEADER DESKTOP & MOBILE */}
-      <header className="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 shadow-xl transition-all">
+      <header className="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 shadow-xl transition-all duration-300">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-2.5 group cursor-default">
-            <div className="bg-brand-400 p-1.5 md:p-2 rounded-xl text-black shadow-lg shadow-brand-400/20 transition-transform group-hover:scale-105">
+            <div className="bg-brand-400 p-1.5 md:p-2 rounded-xl text-black shadow-lg shadow-brand-400/20 transition-transform group-hover:scale-105 duration-300">
               <Book size={20} className="w-5 h-5 md:w-7 md:h-7" />
             </div>
             <div>
@@ -253,8 +253,8 @@ const App: React.FC = () => {
                   <button
                     key={item.id}
                     onClick={() => setInputMode(item.id as InputMode)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
-                      ${isActive ? 'bg-brand-400 text-black shadow-lg' : 'text-slate-400 hover:text-slate-200'}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ease-out
+                      ${isActive ? 'bg-brand-400 text-black shadow-lg scale-105' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}
                     `}
                   >
                     <Icon size={14} />
@@ -265,7 +265,7 @@ const App: React.FC = () => {
             </nav>
             <button 
               onClick={() => setShowHistory(true)}
-              className="p-2 md:p-2.5 text-slate-400 hover:bg-slate-800 hover:text-brand-400 active:scale-95 rounded-full transition-all"
+              className="p-2 md:p-2.5 text-slate-400 hover:bg-slate-800 hover:text-brand-400 active:scale-95 rounded-full transition-all duration-300"
             >
               <HistoryIcon size={22} />
             </button>
@@ -275,7 +275,7 @@ const App: React.FC = () => {
 
       {/* MOBILE BOTTOM NAVIGATION */}
       <nav className="md:hidden fixed bottom-6 left-4 right-4 z-50">
-        <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] p-2 flex items-center justify-between relative z-50">
+        <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] p-2 flex items-center justify-between relative z-50 transition-all">
           {primaryNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = inputMode === item.id;
@@ -283,20 +283,20 @@ const App: React.FC = () => {
               <button
                 key={item.id}
                 onClick={() => { setInputMode(item.id as InputMode); setShowMobileMore(false); }}
-                className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all relative
-                  ${isActive ? 'text-brand-400 bg-brand-400/10' : 'text-slate-500 hover:text-slate-300'}
+                className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300
+                  ${isActive ? 'text-brand-400 bg-brand-400/10 scale-105' : 'text-slate-500 hover:text-slate-300'}
                 `}
               >
                 <Icon size={22} className={isActive ? 'stroke-[2.5px]' : 'stroke-2'} />
                 <span className="text-[8px] font-black uppercase mt-1 tracking-tighter scale-90">{item.label}</span>
-                {isActive && <div className="absolute top-1 w-1 h-1 bg-brand-400 rounded-full shadow-[0_0_8px_#fbbf24]"></div>}
+                {isActive && <div className="absolute top-1 w-1 h-1 bg-brand-400 rounded-full shadow-[0_0_8px_#fbbf24] animate-fade-in"></div>}
               </button>
             );
           })}
           <button
             onClick={() => setShowMobileMore(!showMobileMore)}
-            className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all
-              ${showMobileMore ? 'text-brand-400 bg-brand-400/10' : 'text-slate-500'}
+            className={`flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300
+              ${showMobileMore ? 'text-brand-400 bg-brand-400/10 scale-105' : 'text-slate-500'}
             `}
           >
             <MoreHorizontal size={22} />
@@ -307,7 +307,7 @@ const App: React.FC = () => {
         {/* Mobile More Drawer with Backdrop */}
         {showMobileMore && (
           <>
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={() => setShowMobileMore(false)}></div>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300" onClick={() => setShowMobileMore(false)}></div>
             <div className="absolute bottom-[calc(100%+12px)] left-0 right-0 z-50 animate-slide-up-fade origin-bottom">
               <div className="bg-slate-900/98 backdrop-blur-2xl border border-slate-800 rounded-3xl p-4 shadow-2xl grid grid-cols-2 gap-2">
                 {secondaryNavItems.map((item) => {
@@ -317,8 +317,8 @@ const App: React.FC = () => {
                     <button
                       key={item.id}
                       onClick={() => { setInputMode(item.id as InputMode); setShowMobileMore(false); }}
-                      className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all
-                        ${isActive ? 'bg-brand-400 text-black shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'}
+                      className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-200
+                        ${isActive ? 'bg-brand-400 text-black shadow-lg scale-[1.02]' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'}
                       `}
                     >
                       <Icon size={20} />
@@ -353,67 +353,71 @@ const App: React.FC = () => {
           </div>
         )}
 
-        <section key={inputMode} className="animate-slide-up-fade">
-          <div className={`bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-800 p-5 md:p-12 mb-10 overflow-hidden
-            ${['thematic'].includes(inputMode) ? 'bg-transparent border-none shadow-none !p-0' : ''}
-          `}>
-            
-            <div className={['thematic'].includes(inputMode) ? '' : 'min-h-[100px]'}>
-              {inputMode === 'devotional' && <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading} audience={selectedAudience} />}
-              {inputMode === 'thematic' && <ThematicPlansView onSelectAction={(ref, mode) => mode === 'read' ? handleReadBible(ref) : handleGenerate(ref)} isLoading={loading} />}
-              {inputMode === 'free' && (
-                <textarea
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Sobre o que você quer aprender hoje? Digite um tema ou sentimento..."
-                  className="w-full p-6 md:p-10 rounded-3xl border border-slate-800 focus:border-brand-400 outline-none resize-none h-48 md:h-64 text-base md:text-xl bg-slate-950 text-slate-200 font-serif"
-                />
-              )}
-              {inputMode === 'bible' && <BibleSelector onSelectionChange={setPickerText} />}
-              {inputMode === 'study' && <StudySelector onSelectTopic={setStudyTopic} />}
-              {inputMode === 'search' && (
-                <div className="flex flex-col gap-4">
-                  <input
-                    type="text"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="Busque temas: 'paz', 'família', 'Jesus'..."
-                    className="w-full px-6 h-16 rounded-2xl border border-slate-800 focus:border-brand-400 outline-none bg-slate-950 text-slate-200"
+        {/* Section Wrapper com transição suave */}
+        <section className="w-full transition-all duration-500 ease-in-out">
+          <div
+            className={`bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-800 p-5 md:p-12 mb-10 overflow-hidden transition-all duration-500 ease-in-out
+            ${['thematic'].includes(inputMode) ? 'bg-transparent border-transparent shadow-none !p-0' : ''}
+            `}
+          >
+            <div key={inputMode} className="animate-slide-up-fade">
+              <div className={['thematic'].includes(inputMode) ? '' : 'min-h-[100px]'}>
+                {inputMode === 'devotional' && <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading} audience={selectedAudience} />}
+                {inputMode === 'thematic' && <ThematicPlansView onSelectAction={(ref, mode) => mode === 'read' ? handleReadBible(ref) : handleGenerate(ref)} isLoading={loading} />}
+                {inputMode === 'free' && (
+                  <textarea
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    placeholder="Sobre o que você quer aprender hoje? Digite um tema ou sentimento..."
+                    className="w-full p-6 md:p-10 rounded-3xl border border-slate-800 focus:border-brand-400 outline-none resize-none h-48 md:h-64 text-base md:text-xl bg-slate-950 text-slate-200 font-serif transition-all duration-300 focus:shadow-lg focus:shadow-brand-400/5 animate-fade-in"
                   />
-                  <button 
-                    onClick={handleSearch}
-                    disabled={loading || !hasApiKey}
-                    className="w-full h-14 bg-brand-400 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-brand-500 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
-                  >
-                    {loading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-                    Pesquisar na Bíblia
-                  </button>
+                )}
+                {inputMode === 'bible' && <div className="animate-fade-in"><BibleSelector onSelectionChange={setPickerText} /></div>}
+                {inputMode === 'study' && <div className="animate-fade-in"><StudySelector onSelectTopic={setStudyTopic} /></div>}
+                {inputMode === 'search' && (
+                  <div className="flex flex-col gap-4 animate-fade-in">
+                    <input
+                      type="text"
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      placeholder="Busque temas: 'paz', 'família', 'Jesus'..."
+                      className="w-full px-6 h-16 rounded-2xl border border-slate-800 focus:border-brand-400 outline-none bg-slate-950 text-slate-200 transition-all focus:shadow-lg focus:shadow-brand-400/5"
+                    />
+                    <button 
+                      onClick={handleSearch}
+                      disabled={loading || !hasApiKey}
+                      className="w-full h-14 bg-brand-400 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-brand-500 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
+                    >
+                      {loading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
+                      Pesquisar na Bíblia
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {!['thematic', 'search'].includes(inputMode) && (
+                <div className="mt-10 pt-8 border-t border-slate-800 flex flex-col gap-8 animate-fade-in delay-100">
+                  <AudienceSelector selected={selectedAudience} onChange={setSelectedAudience} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => handleReadBible()}
+                      disabled={loading || !hasApiKey}
+                      className="flex items-center justify-center gap-3 h-16 rounded-2xl font-black uppercase tracking-widest text-slate-400 bg-slate-800/50 border border-slate-700 hover:text-white active:scale-95 transition-all disabled:opacity-20"
+                    >
+                      <BookOpen size={22} /> Ler Texto
+                    </button>
+                    <button
+                      onClick={() => handleGenerate()}
+                      disabled={loading || !hasApiKey || quotaWaitTime > 0}
+                      className="flex items-center justify-center gap-3 h-16 rounded-2xl font-black uppercase tracking-widest text-black bg-brand-400 hover:bg-brand-500 hover:shadow-xl hover:shadow-brand-400/20 active:scale-95 transition-all disabled:opacity-20 shadow-lg"
+                    >
+                      {loading ? <Loader2 size={22} className="animate-spin" /> : <Sparkles size={22} />} Explicação
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
-
-            {!['thematic', 'search'].includes(inputMode) && (
-              <div className="mt-10 pt-8 border-t border-slate-800 flex flex-col gap-8">
-                <AudienceSelector selected={selectedAudience} onChange={setSelectedAudience} />
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => handleReadBible()}
-                    disabled={loading || !hasApiKey}
-                    className="flex items-center justify-center gap-3 h-16 rounded-2xl font-black uppercase tracking-widest text-slate-400 bg-slate-800/50 border border-slate-700 hover:text-white transition-all disabled:opacity-20"
-                  >
-                    <BookOpen size={22} /> Ler Texto
-                  </button>
-                  <button
-                    onClick={() => handleGenerate()}
-                    disabled={loading || !hasApiKey || quotaWaitTime > 0}
-                    className="flex items-center justify-center gap-3 h-16 rounded-2xl font-black uppercase tracking-widest text-black bg-brand-400 hover:bg-brand-500 transition-all disabled:opacity-20 shadow-lg"
-                  >
-                    {loading ? <Loader2 size={22} className="animate-spin" /> : <Sparkles size={22} />} Explicação
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </section>
 
@@ -439,7 +443,7 @@ const App: React.FC = () => {
 
       {showHistory && (
         <div className="fixed inset-0 z-[60] flex justify-end">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowHistory(false)}></div>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300" onClick={() => setShowHistory(false)}></div>
           <div className="relative w-full max-w-sm bg-slate-900 h-full shadow-2xl overflow-y-auto animate-slide-in-right flex flex-col border-l border-slate-800">
             <div className="p-6 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
               <h2 className="font-black text-white uppercase tracking-widest text-xs">Histórico</h2>
@@ -451,8 +455,8 @@ const App: React.FC = () => {
                    <p className="text-xs uppercase font-black tracking-widest">Vazio</p>
                 </div>
               ) : history.map((item) => (
-                <button key={item.id} onClick={() => handleRestoreHistory(item)} className="w-full text-left p-5 rounded-3xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800/30 transition-all group">
-                  <div className="font-bold text-slate-200 text-sm truncate">{item.text}</div>
+                <button key={item.id} onClick={() => handleRestoreHistory(item)} className="w-full text-left p-5 rounded-3xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800/30 transition-all duration-300 group">
+                  <div className="font-bold text-slate-200 text-sm truncate group-hover:text-brand-400 transition-colors">{item.text}</div>
                   <div className="text-[10px] text-slate-500 mt-2 uppercase font-black tracking-widest">
                     {item.audience === AudienceType.CHILD ? "Crianças" : item.audience === AudienceType.TEEN ? "Jovens" : "Adultos"}
                   </div>
