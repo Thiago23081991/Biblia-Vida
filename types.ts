@@ -29,4 +29,13 @@ export interface HistoryItem {
   timestamp: number;
 }
 
-export type InputMode = 'free' | 'bible' | 'search' | 'study' | 'thematic' | 'devotional';
+export interface OfflineItem {
+  id: string;
+  title: string;
+  content: string;
+  type: 'bible' | 'devotional' | 'explanation';
+  timestamp: number;
+  preview: string;
+}
+
+export type InputMode = 'free' | 'bible' | 'search' | 'study' | 'thematic' | 'devotional' | 'offline';

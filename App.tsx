@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { AudienceType, HistoryItem, InputMode } from './types';
+import { AudienceType, HistoryItem, InputMode, OfflineItem } from './types';
 import { generateExplanation, searchBibleVerses, generateDevotional, getNviText } from './services/geminiService';
 import { bibleBooks } from './data/bibleBooks';
 import AudienceSelector from './components/AudienceSelector';
@@ -9,10 +9,11 @@ import BibleSelector from './components/BibleSelector';
 import StudySelector from './components/StudySelector';
 import ThematicPlansView from './components/ThematicPlansView';
 import DevotionalView from './components/DevotionalView';
+import OfflineView from './components/OfflineView';
 import { 
   Book, Sparkles, History as HistoryIcon, X, Type, BookOpen, 
   Search, GraduationCap, Library, Coffee, 
-  Loader2, Key, MoreHorizontal 
+  Loader2, Key, MoreHorizontal, WifiOff 
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -140,12 +141,9 @@ const App: React.FC = () => {
     if (!inputToUse.trim()) return;
 
     // LÓGICA DE INTERVALO (FIX PARA DESAFIOS LONGOS)
-    // Se o usuário pedir "Gênesis 1 - Deuteronômio 34", pegamos apenas "Gênesis 1".
-    // Isso permite começar a leitura capítulo por capítulo.
     if (inputToUse.includes('-') || inputToUse.toLowerCase().includes(' a ')) {
         const splitChar = inputToUse.includes('-') ? '-' : ' a ';
         const startRef = inputToUse.split(splitChar)[0].trim();
-        // Verifica se o resultado é algo válido como "Gênesis 1"
         if (/\d+$/.test(startRef)) {
             inputToUse = startRef;
         }
@@ -158,7 +156,7 @@ const App: React.FC = () => {
     setCurrentReference(inputToUse);
     
     try {
-      const rawResponse = await getNviText(inputToUse); // Agora busca Almeida (ARC)
+      const rawResponse = await getNviText(inputToUse);
       const finalResponse = processResponse(rawResponse);
       setResult(finalResponse);
       setTimeout(() => document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
@@ -169,8 +167,16 @@ const App: React.FC = () => {
     }
   };
 
+  const handleReadOfflineItem = (item: OfflineItem) => {
+    setResult(item.content);
+    setCurrentReference(item.title);
+    setIsReadingMode(item.type === 'bible');
+    setIsDevotionalResult(item.type === 'devotional');
+    // Scroll suave
+    setTimeout(() => document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  };
+
   const handleNavigateReference = (direction: 'prev' | 'next') => {
-    // Regex ajustada para capturar nomes compostos (ex: 1 João, 2 Reis)
     const match = currentReference.match(/^((?:\d\s+)?\D+?)\s+(\d+)/);
     if (!match) return;
     
@@ -241,6 +247,7 @@ const App: React.FC = () => {
   ];
 
   const secondaryNavItems = [
+    { id: 'offline', label: 'Offline', icon: WifiOff },
     { id: 'free', label: 'Explorar', icon: Type },
     { id: 'study', label: 'Estudos', icon: GraduationCap },
   ];
@@ -354,7 +361,7 @@ const App: React.FC = () => {
       {/* Padding bottom adicionado para não cobrir conteúdo com a barra mobile */}
       <main className="w-full max-w-4xl mx-auto px-4 py-4 md:py-10 flex-grow pb-32 md:pb-12">
         
-        {!hasApiKey && (
+        {!hasApiKey && inputMode !== 'offline' && (
           <div className="mb-8 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col items-center text-center gap-5 animate-fade-in shadow-2xl">
             <div className="w-16 h-16 bg-brand-400 text-black rounded-2xl flex items-center justify-center shadow-lg shadow-brand-400/20">
               <Key size={32} />
@@ -374,70 +381,74 @@ const App: React.FC = () => {
 
         {/* Section Wrapper com transição suave */}
         <section className="w-full transition-all duration-500 ease-in-out">
-          <div
-            className={`bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-800 p-5 md:p-12 mb-10 overflow-hidden transition-all duration-500 ease-in-out
-            ${['thematic'].includes(inputMode) ? 'bg-transparent border-transparent shadow-none !p-0' : ''}
-            `}
-          >
-            <div key={inputMode} className="animate-slide-up-fade">
-              <div className={['thematic'].includes(inputMode) ? '' : 'min-h-[100px]'}>
-                {inputMode === 'devotional' && <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading} audience={selectedAudience} />}
-                {inputMode === 'thematic' && <ThematicPlansView onSelectAction={(ref, mode) => mode === 'read' ? handleReadBible(ref) : handleGenerate(ref)} isLoading={loading} />}
-                {inputMode === 'free' && (
-                  <textarea
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Sobre o que você quer aprender hoje? Digite um tema ou sentimento..."
-                    className="w-full p-6 md:p-10 rounded-3xl border border-slate-800 focus:border-brand-400 outline-none resize-none h-48 md:h-64 text-base md:text-xl bg-slate-950 text-slate-200 font-serif transition-all duration-300 focus:shadow-lg focus:shadow-brand-400/5 animate-fade-in"
-                  />
-                )}
-                {inputMode === 'bible' && <div className="animate-fade-in"><BibleSelector onSelectionChange={setPickerText} /></div>}
-                {inputMode === 'study' && <div className="animate-fade-in"><StudySelector onSelectTopic={setStudyTopic} /></div>}
-                {inputMode === 'search' && (
-                  <div className="flex flex-col gap-4 animate-fade-in">
-                    <input
-                      type="text"
-                      value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      placeholder="Busque temas: 'paz', 'família', 'Jesus'..."
-                      className="w-full px-6 h-16 rounded-2xl border border-slate-800 focus:border-brand-400 outline-none bg-slate-950 text-slate-200 transition-all focus:shadow-lg focus:shadow-brand-400/5"
+          {inputMode === 'offline' ? (
+            <OfflineView onSelectItem={handleReadOfflineItem} />
+          ) : (
+            <div
+              className={`bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-800 p-5 md:p-12 mb-10 overflow-hidden transition-all duration-500 ease-in-out
+              ${['thematic'].includes(inputMode) ? 'bg-transparent border-transparent shadow-none !p-0' : ''}
+              `}
+            >
+              <div key={inputMode} className="animate-slide-up-fade">
+                <div className={['thematic'].includes(inputMode) ? '' : 'min-h-[100px]'}>
+                  {inputMode === 'devotional' && <DevotionalView onGenerate={handleGenerateDevotional} onRead={handleReadBible} isLoading={loading} audience={selectedAudience} />}
+                  {inputMode === 'thematic' && <ThematicPlansView onSelectAction={(ref, mode) => mode === 'read' ? handleReadBible(ref) : handleGenerate(ref)} isLoading={loading} />}
+                  {inputMode === 'free' && (
+                    <textarea
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      placeholder="Sobre o que você quer aprender hoje? Digite um tema ou sentimento..."
+                      className="w-full p-6 md:p-10 rounded-3xl border border-slate-800 focus:border-brand-400 outline-none resize-none h-48 md:h-64 text-base md:text-xl bg-slate-950 text-slate-200 font-serif transition-all duration-300 focus:shadow-lg focus:shadow-brand-400/5 animate-fade-in"
                     />
-                    <button 
-                      onClick={handleSearch}
-                      disabled={loading || !hasApiKey}
-                      className="w-full h-14 bg-brand-400 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-brand-500 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
-                    >
-                      {loading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-                      Pesquisar na Bíblia
-                    </button>
+                  )}
+                  {inputMode === 'bible' && <div className="animate-fade-in"><BibleSelector onSelectionChange={setPickerText} /></div>}
+                  {inputMode === 'study' && <div className="animate-fade-in"><StudySelector onSelectTopic={setStudyTopic} /></div>}
+                  {inputMode === 'search' && (
+                    <div className="flex flex-col gap-4 animate-fade-in">
+                      <input
+                        type="text"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        placeholder="Busque temas: 'paz', 'família', 'Jesus'..."
+                        className="w-full px-6 h-16 rounded-2xl border border-slate-800 focus:border-brand-400 outline-none bg-slate-950 text-slate-200 transition-all focus:shadow-lg focus:shadow-brand-400/5"
+                      />
+                      <button 
+                        onClick={handleSearch}
+                        disabled={loading || !hasApiKey}
+                        className="w-full h-14 bg-brand-400 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-brand-500 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
+                      >
+                        {loading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
+                        Pesquisar na Bíblia
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {!['thematic', 'search'].includes(inputMode) && (
+                  <div className="mt-10 pt-8 border-t border-slate-800 flex flex-col gap-8 animate-fade-in delay-100">
+                    <AudienceSelector selected={selectedAudience} onChange={setSelectedAudience} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        onClick={() => handleReadBible()}
+                        disabled={loading || !hasApiKey}
+                        className="flex items-center justify-center gap-3 h-16 rounded-2xl font-black uppercase tracking-widest text-slate-400 bg-slate-800/50 border border-slate-700 hover:text-white active:scale-95 transition-all disabled:opacity-20"
+                      >
+                        <BookOpen size={22} /> Ler Texto
+                      </button>
+                      <button
+                        onClick={() => handleGenerate()}
+                        disabled={loading || !hasApiKey || quotaWaitTime > 0}
+                        className="flex items-center justify-center gap-3 h-16 rounded-2xl font-black uppercase tracking-widest text-black bg-brand-400 hover:bg-brand-500 hover:shadow-xl hover:shadow-brand-400/20 active:scale-95 transition-all disabled:opacity-20 shadow-lg"
+                      >
+                        {loading ? <Loader2 size={22} className="animate-spin" /> : <Sparkles size={22} />} Explicação
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
-
-              {!['thematic', 'search'].includes(inputMode) && (
-                <div className="mt-10 pt-8 border-t border-slate-800 flex flex-col gap-8 animate-fade-in delay-100">
-                  <AudienceSelector selected={selectedAudience} onChange={setSelectedAudience} />
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={() => handleReadBible()}
-                      disabled={loading || !hasApiKey}
-                      className="flex items-center justify-center gap-3 h-16 rounded-2xl font-black uppercase tracking-widest text-slate-400 bg-slate-800/50 border border-slate-700 hover:text-white active:scale-95 transition-all disabled:opacity-20"
-                    >
-                      <BookOpen size={22} /> Ler Texto
-                    </button>
-                    <button
-                      onClick={() => handleGenerate()}
-                      disabled={loading || !hasApiKey || quotaWaitTime > 0}
-                      className="flex items-center justify-center gap-3 h-16 rounded-2xl font-black uppercase tracking-widest text-black bg-brand-400 hover:bg-brand-500 hover:shadow-xl hover:shadow-brand-400/20 active:scale-95 transition-all disabled:opacity-20 shadow-lg"
-                    >
-                      {loading ? <Loader2 size={22} className="animate-spin" /> : <Sparkles size={22} />} Explicação
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
+          )}
         </section>
 
         {result && (

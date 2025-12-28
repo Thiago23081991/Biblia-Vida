@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AudienceType } from '../types';
-import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X, Loader2, FastForward, Rewind, Book } from 'lucide-react';
+import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X, Loader2, FastForward, Rewind, Book, Download, Trash2, WifiOff } from 'lucide-react';
+import { isItemSaved, saveOfflineItem, deleteOfflineItem } from '../services/offlineStorage';
 
 interface ResultCardProps {
   content: string;
@@ -16,6 +17,34 @@ interface ResultCardProps {
 const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional, isReadingMode, onNavigate, isLoading, currentReference }) => {
   const [copied, setCopied] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  // ID único para o conteúdo atual (Referência ou Título)
+  // Removemos caracteres especiais para criar IDs seguros
+  const contentId = currentReference || content.substring(0, 30);
+
+  useEffect(() => {
+    setIsSaved(isItemSaved(contentId));
+  }, [contentId, content]);
+
+  const handleToggleSave = () => {
+    if (isSaved) {
+      deleteOfflineItem(contentId);
+      setIsSaved(false);
+    } else {
+      const type = isReadingMode ? 'bible' : isDevotional ? 'devotional' : 'explanation';
+      const success = saveOfflineItem({
+        id: contentId,
+        title: currentReference || (isDevotional ? "Devocional do Dia" : "Explicação Bíblica"),
+        content: content,
+        type: type,
+        timestamp: Date.now(),
+        preview: content.substring(0, 100) + "..."
+      });
+      if (success) setIsSaved(true);
+      else alert("Espaço insuficiente no dispositivo para salvar mais itens.");
+    }
+  };
 
   const getSocialFormattedText = () => {
     let text = content
@@ -123,23 +152,37 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional
 
   return (
     <div className={`w-full rounded-[2.5rem] border-2 p-8 md:p-16 relative animate-fade-in transition-all duration-500 ${styles.container}`}>
-      {/* Botões ocultos no modo leitura para focar no texto */}
-      {!isReadingMode && (
-        <div className="absolute top-5 right-5 flex gap-3 z-10">
-          <button onClick={() => handleCopy()} className="p-3 bg-slate-800/80 backdrop-blur rounded-2xl shadow-sm hover:bg-slate-700 active:scale-90 transition-all border border-slate-700">
-            {copied ? <Check size={20} className="text-green-400" /> : <Copy size={20} className="text-brand-400" />}
-          </button>
-          <button onClick={() => setShowShareMenu(true)} className="p-3 bg-brand-400 rounded-2xl shadow-lg hover:bg-brand-500 active:scale-90 transition-all text-black">
-            <Share2 size={20} />
-          </button>
-        </div>
-      )}
+      {/* Botões de Ação (Copy, Share, Download) */}
+      <div className="absolute top-5 right-5 flex gap-3 z-20">
+        <button 
+          onClick={handleToggleSave} 
+          className={`p-3 rounded-2xl shadow-sm hover:bg-slate-700 active:scale-90 transition-all border
+            ${isSaved 
+              ? 'bg-green-500 text-black border-green-500 hover:bg-green-400' 
+              : 'bg-slate-800/80 backdrop-blur text-slate-400 border-slate-700'
+            }`}
+          title={isSaved ? "Remover dos Downloads" : "Baixar para Leitura Offline"}
+        >
+          {isSaved ? <Check size={20} className="stroke-[3]" /> : <Download size={20} />}
+        </button>
+        
+        {!isReadingMode && (
+          <>
+            <button onClick={() => handleCopy()} className="p-3 bg-slate-800/80 backdrop-blur rounded-2xl shadow-sm hover:bg-slate-700 active:scale-90 transition-all border border-slate-700 text-slate-400 hover:text-white">
+              {copied ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
+            </button>
+            <button onClick={() => setShowShareMenu(true)} className="p-3 bg-brand-400 rounded-2xl shadow-lg hover:bg-brand-500 active:scale-90 transition-all text-black">
+              <Share2 size={20} />
+            </button>
+          </>
+        )}
+      </div>
 
       {/* Header de Modo Leitura */}
       {isReadingMode && (
         <div className="flex flex-col items-center mb-12 text-center animate-fade-in">
-          <div className="bg-brand-400/10 text-brand-400 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-4 border border-brand-400/20">
-            Texto Sagrado
+          <div className="bg-brand-400/10 text-brand-400 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-4 border border-brand-400/20 flex items-center gap-2">
+            {isSaved ? <WifiOff size={12} /> : null} Texto Sagrado
           </div>
           <h2 className="text-3xl md:text-5xl font-serif font-black text-white">{currentReference}</h2>
           <div className="w-12 h-1 bg-brand-400 mt-6 rounded-full opacity-50"></div>
@@ -193,7 +236,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ content, audience, isDevotional
         </div>
       )}
 
-      {/* Share Modal (Apenas para não-leitura) */}
+      {/* Share Modal */}
       {!isReadingMode && showShareMenu && (
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity" onClick={() => setShowShareMenu(false)}></div>

@@ -134,28 +134,29 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
           <h2 className="text-xl md:text-4xl font-serif font-bold leading-tight uppercase tracking-tighter">
             {audience === AudienceType.CHILD ? 'Aventura Bíblica' : 'Meditação Profunda'}
           </h2>
-          <p className="text-white/60 text-xs md:text-base mt-2 font-medium">
+          <p className="text-white/60 text-xs md:text-base mt-2 font-medium max-w-[80%]">
             {audience === AudienceType.CHILD ? 'Histórias incríveis para hoje!' : 'Temas renovados hoje para edificar sua vida.'}
           </p>
         </div>
-        <Quote className="absolute right-[-30px] bottom-[-30px] text-white/5 w-32 h-32 md:w-64 md:h-64 -rotate-12" />
+        <Quote className="absolute right-[-20px] bottom-[-20px] text-white/5 w-24 h-24 md:w-64 md:h-64 -rotate-12" />
       </div>
 
-      <div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 p-5 md:p-10 shadow-2xl">
+      <div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 p-4 md:p-10 shadow-2xl">
         {/* Curadoria de Temas Diários */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-5">
+        <div className="mb-6 md:mb-10">
+          <div className="flex items-center justify-between mb-4 md:mb-5">
             <h3 className="text-[10px] font-black text-brand-400 uppercase tracking-widest ml-1">
               {audience === AudienceType.CHILD ? 'Escolha sua Aventura' : 'Curadoria para Hoje'}
             </h3>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
               <button 
                 onClick={handleRandomSuggestion}
-                className="flex items-center gap-2 px-3 py-1 bg-slate-800 hover:bg-brand-400 hover:text-black text-slate-400 rounded-full transition-all text-[10px] font-black uppercase tracking-widest border border-slate-700 group active:scale-95"
+                className="flex items-center gap-2 px-2.5 py-1 md:px-3 md:py-1 bg-slate-800 hover:bg-brand-400 hover:text-black text-slate-400 rounded-full transition-all text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-slate-700 group active:scale-95"
               >
                 <Dices size={12} className="group-hover:rotate-180 transition-transform duration-500" />
-                <span>Surpreenda-me</span>
+                <span className="hidden sm:inline">Surpreenda-me</span>
+                <span className="sm:hidden">Aleatório</span>
               </button>
 
               <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 bg-brand-400/10 rounded-full border border-brand-400/20">
@@ -164,7 +165,7 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
             {dailyThemes.map((cat, idx) => {
               const Icon = cat.icon;
               const isSelected = selectedRef === cat.ref;
@@ -172,17 +173,17 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
                 <button
                   key={idx}
                   onClick={() => handleSuggestionClick(cat.ref)}
-                  className={`flex flex-col items-center justify-center gap-3 px-3 py-5 rounded-2xl border-2 transition-all active:scale-95 group relative overflow-hidden
+                  className={`flex flex-col items-center justify-center gap-2 md:gap-3 px-2 py-4 md:px-3 md:py-5 rounded-2xl border-2 transition-all active:scale-95 group relative overflow-hidden
                     ${isSelected 
-                      ? 'border-brand-400 bg-brand-400/10 text-brand-400 shadow-lg shadow-brand-400/10 scale-105 z-10' 
+                      ? 'border-brand-400 bg-brand-400/10 text-brand-400 shadow-lg shadow-brand-400/10 scale-[1.02] z-10' 
                       : `bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300`
                     }
                   `}
                 >
-                  <div className={`p-3 rounded-xl transition-all ${isSelected ? 'bg-brand-400 text-black shadow-lg' : 'bg-slate-900 group-hover:bg-slate-800'}`}>
-                    <Icon size={20} className="md:w-5 md:h-5" />
+                  <div className={`p-2.5 md:p-3 rounded-xl transition-all ${isSelected ? 'bg-brand-400 text-black shadow-lg' : 'bg-slate-900 group-hover:bg-slate-800'}`}>
+                    <Icon size={18} className="md:w-5 md:h-5" />
                   </div>
-                  <span className="text-xs font-black tracking-widest uppercase text-center leading-tight">{cat.theme}</span>
+                  <span className="text-[10px] md:text-xs font-black tracking-widest uppercase text-center leading-tight truncate w-full">{cat.theme}</span>
                   
                   {/* Subtle Background Glow for each theme */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${cat.color} opacity-0 group-hover:opacity-20 transition-opacity`} />
@@ -192,39 +193,39 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
           </div>
         </div>
 
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 md:mb-8">
+          <div className="flex items-center justify-between mb-2 md:mb-4">
             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Referência Ativa</h3>
           </div>
 
-          {/* Card de Referência Ativa com Estilo Atos */}
+          {/* Card de Referência Ativa - Versão Compacta Mobile */}
           <button 
             onClick={() => setShowSelector(!showSelector)}
-            className={`w-full flex items-center justify-between p-4 md:p-6 rounded-2xl border-2 transition-all active:scale-[0.98]
+            className={`w-full flex items-center justify-between p-3 md:p-6 rounded-2xl border-2 transition-all active:scale-[0.98]
               ${showSelector ? 'border-brand-400 bg-brand-400/5' : 'border-slate-800 bg-slate-950 hover:border-slate-700'}
             `}
           >
-            <div className="flex items-center gap-4">
-              <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                <BookOpen size={20} className="text-brand-400" />
+            <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+              <div className="bg-slate-900 p-2 md:p-2.5 rounded-xl border border-slate-800 flex-shrink-0">
+                <BookOpen size={16} className="text-brand-400 md:w-5 md:h-5" />
               </div>
-              <span className="font-serif font-black text-lg md:text-2xl text-white tracking-tight">{selectedRef}</span>
+              <span className="font-serif font-black text-base md:text-2xl text-white tracking-tight truncate">{selectedRef}</span>
             </div>
-            <div className="text-slate-600">
-              {showSelector ? <ChevronUp size={22} /> : <ChevronDown size={22} />}
+            <div className="text-slate-600 flex-shrink-0 ml-2">
+              {showSelector ? <ChevronUp size={18} className="md:w-6 md:h-6" /> : <ChevronDown size={18} className="md:w-6 md:h-6" />}
             </div>
           </button>
 
           {/* Seletor Colapsável Integrado ao Tema Dark */}
           {showSelector && (
-            <div className="mt-4 animate-slide-up-fade">
+            <div className="mt-3 md:mt-4 animate-slide-up-fade relative z-20">
               <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
-                <div className="max-h-[350px] overflow-y-auto p-3 no-scrollbar">
+                <div className="max-h-[350px] overflow-y-auto p-2 md:p-3 no-scrollbar">
                   <BibleSelector onSelectionChange={setSelectedRef} />
                 </div>
                 <button 
                   onClick={() => setShowSelector(false)}
-                  className="w-full py-4 text-[10px] font-black uppercase text-black bg-brand-400 tracking-[0.2em] hover:bg-brand-500 transition-colors shadow-lg"
+                  className="w-full py-3 md:py-4 text-[10px] font-black uppercase text-black bg-brand-400 tracking-[0.2em] hover:bg-brand-500 transition-colors shadow-lg"
                 >
                   Confirmar Estudo
                 </button>
@@ -233,23 +234,23 @@ const DevotionalView: React.FC<DevotionalViewProps> = ({ onGenerate, onRead, isL
           )}
         </div>
 
-        {/* Botões de Ação Dark/Amarelo */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Botões de Ação Dark/Amarelo - Grid 2 colunas no mobile também */}
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
           <button
             onClick={() => onRead(selectedRef)}
             disabled={isLoading}
-            className="flex items-center justify-center gap-3 h-14 md:h-20 rounded-2xl font-black uppercase tracking-widest text-slate-400 bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:text-white active:scale-95 transition-all disabled:opacity-30"
+            className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 h-20 md:h-20 rounded-2xl font-black uppercase tracking-widest text-slate-400 bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:text-white active:scale-95 transition-all disabled:opacity-30"
           >
-            <BookOpen size={22} />
-            <span className="text-xs">Ler Passagem</span>
+            <BookOpen size={20} className="md:w-6 md:h-6" />
+            <span className="text-[10px] md:text-xs text-center leading-tight">Ler<br className="md:hidden"/> Passagem</span>
           </button>
           <button
             onClick={() => onGenerate(selectedRef)}
             disabled={isLoading}
-            className="flex items-center justify-center gap-3 h-14 md:h-20 rounded-2xl font-black uppercase tracking-widest text-black bg-brand-400 hover:bg-brand-500 shadow-xl shadow-brand-400/5 active:scale-95 transition-all disabled:bg-slate-800 disabled:text-slate-600"
+            className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 h-20 md:h-20 rounded-2xl font-black uppercase tracking-widest text-black bg-brand-400 hover:bg-brand-500 shadow-xl shadow-brand-400/5 active:scale-95 transition-all disabled:bg-slate-800 disabled:text-slate-600"
           >
-            {isLoading ? <Loader2 size={22} className="animate-spin" /> : <Sparkles size={22} />}
-            <span className="text-xs">Gerar Devocional</span>
+            {isLoading ? <Loader2 size={20} className="animate-spin md:w-6 md:h-6" /> : <Sparkles size={20} className="md:w-6 md:h-6" />}
+            <span className="text-[10px] md:text-xs text-center leading-tight">Gerar<br className="md:hidden"/> Devocional</span>
           </button>
         </div>
       </div>
