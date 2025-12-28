@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AudienceType } from '../types';
-import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X, Loader2, FastForward, Rewind, Book, Download, Trash2, WifiOff } from 'lucide-react';
+import { Copy, Check, Share2, Mail, MessageCircle, Twitter, Smartphone, X, Loader2, FastForward, Rewind, Book, Download, WifiOff } from 'lucide-react';
 import { isItemSaved, saveOfflineItem, deleteOfflineItem } from '../services/offlineStorage';
 
 interface ResultCardProps {
